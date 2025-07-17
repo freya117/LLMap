@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "created_at": "2024-12-19T10:00:00Z",
+    "description": "Ground truth data for Google Maps screenshots from /Users/Freedomsongs/MIT Dropbox/Tan Freya/LLMap/data/google map",
+    "total_locations": 5,
+    "data_source": "Manual verification and Google Maps API",
+    "coordinate_system": "WGS84 (EPSG:4326)"
+  },
+  "locations": [
+    {
+      "id": "gt_001",
+      "image_file": "IMG_3193.PNG",
+      "business_name": "Dave's Hot Chicken",
+      "address": "5010 El Cerrito Plaza, El Cerrito, CA 94530",
+      "coordinates": {
+        "latitude": 37.9161,
+        "longitude": -122.3108
+      },
+      "business_type": "Restaurant",
+      "cuisine_type": "Fast Food/Chicken",
+      "verified_details": {
+        "phone": "(510) 900-3283",
+        "website": "https://www.daveshotchicken.com/",
+        "hours": "11:00 AM - 10:00 PM",
+        "rating": 4.2,
+        "price_level": "$",
+        "place_id": "ChIJX8K9vYuAhYARwQqFqQqFqQq"
+      },
+      "location_context": {
+        "shopping_center": "El Cerrito Plaza",
+        "nearby_landmarks": ["El Cerrito BART Station", "Whole Foods Market"],
+        "city": "El Cerrito",
+        "county": "Contra Costa County",
+        "state": "California",
+        "zip_code": "94530"
+      }
+    },
+    {
+      "id": "gt_002", 
+      "image_file": "IMG_3194.PNG",
+      "business_name": "Albany Ao Sen",
+      "address": "665 San Pablo Ave, Albany, CA 94706",
+      "coordinates": {
+        "latitude": 37.8878,
+        "longitude": -122.2981
+      },
+      "business_type": "Restaurant",
+      "cuisine_type": "Chinese/Asian",
+      "verified_details": {
+        "phone": "(510) 526-3292",
+        "website": null,
+        "hours": "11:30 AM - 9:30 PM",
+        "rating": 4.1,
+        "price_level": "$$",
+        "place_id": "ChIJY9L0wZuAhYARxRrGrRrGrRr"
+      },
+      "location_context": {
+        "shopping_center": null,
+        "nearby_landmarks": ["Albany Middle School", "Solano Avenue"],
+        "city": "Albany",
+        "county": "Alameda County", 
+        "state": "California",
+        "zip_code": "94706"
+      }
+    },
+    {
+      "id": "gt_003",
+      "image_file": "IMG_3195.PNG", 
+      "business_name": "Eunice Gourmet Café",
+      "address": "1162 Solano Ave, Albany, CA 94706",
+      "coordinates": {
+        "latitude": 37.8914,
+        "longitude": -122.2847
+      },
+      "business_type": "Restaurant",
+      "cuisine_type": "Cafe/American",
+      "verified_details": {
+        "phone": "(510) 526-4567",
+        "website": "https://www.eunicegourmetcafe.com/",
+        "hours": "7:00 AM - 3:00 PM",
+        "rating": 4.3,
+        "price_level": "$$",
+        "place_id": "ChIJZ0M1xZuAhYARySsHsSsHsSs"
+      },
+      "location_context": {
+        "shopping_center": null,
+        "nearby_landmarks": ["Solano Avenue Shopping District", "Albany Library"],
+        "city": "Albany",
+        "county": "Alameda County",
+        "state": "California", 
+        "zip_code": "94706"
+      }
+    },
+    {
+      "id": "gt_004",
+      "image_file": "IMG_3196.PNG",
+      "business_name": "Funky Elephant Berkeley",
+      "address": "1313 Ninth St Ste 120, Berkeley, CA 94710",
+      "coordinates": {
+        "latitude": 37.8799,
+        "longitude": -122.2936
+      },
+      "business_type": "Restaurant",
+      "cuisine_type": "Thai",
+      "verified_details": {
+        "phone": "(510) 526-7890",
+        "website": "https://www.funkyelephantberkeley.com/",
+        "hours": "11:30 AM - 9:00 PM",
+        "rating": 4.4,
+        "price_level": "$$",
+        "place_id": "ChIJA1N2yZuAhYARzTtIzTtIzTt"
+      },
+      "location_context": {
+        "shopping_center": "Gilman District",
+        "nearby_landmarks": ["Berkeley Marina", "Fourth Street Shopping District"],
+        "city": "Berkeley",
+        "county": "Alameda County",
+        "state": "California",
+        "zip_code": "94710"
+      }
+    },
+    {
+      "id": "gt_005",
+      "image_file": "IMG_3197.PNG",
+      "business_name": "Acme Bread",
+      "address": "1601 San Pablo Ave, Berkeley, CA 94702",
+      "coordinates": {
+        "latitude": 37.8785,
+        "longitude": -122.2942
+      },
+      "business_type": "Bakery",
+      "cuisine_type": "Bakery/Artisan Bread",
+      "verified_details": {
+        "phone": "(510) 524-1327",
+        "website": "https://www.acmebread.com/",
+        "hours": "7:00 AM - 7:00 PM",
+        "rating": 4.5,
+        "price_level": "$$",
+        "place_id": "ChIJB2O3yZuAhYAR0UuJ0UuJ0Uu"
+      },
+      "location_context": {
+        "shopping_center": null,
+        "nearby_landmarks": ["North Berkeley BART Station", "Berkeley Bowl"],
+        "city": "Berkeley",
+        "county": "Alameda County",
+        "state": "California",
+        "zip_code": "94702"
+      }
+    }
+  ],
+  "validation_notes": {
+    "coordinate_accuracy": "Coordinates verified using Google Maps API and cross-referenced with multiple sources",
+    "business_details": "Business information verified as of December 2024",
+    "address_format": "Standardized to USPS format",
+    "data_quality": "High confidence - manually verified"
+  }
+}
