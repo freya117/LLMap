@@ -9,44 +9,143 @@ export default function FileUpload({ onFilesUploaded, onOCRComplete }) {
     const [ocrResults, setOCRResults] = useState(null);
     const [ocrError, setOCRError] = useState(null);
     const [isBackendProcessing, setIsBackendProcessing] = useState(false);
+    
+    // Enhanced progress tracking for backend processing
+    const [backendProgress, setBackendProgress] = useState({
+        currentStep: '',
+        currentFile: '',
+        filesProcessed: 0,
+        totalFiles: 0,
+        percentage: 0,
+        status: 'idle' // 'idle', 'uploading', 'processing', 'extracting', 'completed', 'error'
+    });
 
-    // Backend OCR processing function for automatic processing
+    // Backend OCR processing function with enhanced progress tracking
     const handleBackendOCRProcessing = async (imageFiles) => {
         if (imageFiles.length === 0) return;
 
         setIsBackendProcessing(true);
         setOCRError(null);
+        
+        // Initialize progress tracking
+        setBackendProgress({
+            currentStep: 'Initializing...',
+            currentFile: '',
+            filesProcessed: 0,
+            totalFiles: imageFiles.length,
+            percentage: 0,
+            status: 'processing'
+        });
 
         try {
-            // Check if backend is available
+            // Step 1: Check backend availability
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: 'Connecting to backend server...',
+                percentage: 5
+            }));
+
             const healthResponse = await fetch('http://localhost:8000/health');
             if (!healthResponse.ok) {
                 console.warn('Backend server not available, falling back to frontend processing');
                 setIsBackendProcessing(false);
+                setBackendProgress(prev => ({ ...prev, status: 'idle' }));
                 processFiles(imageFiles, 'auto');
                 return;
             }
 
-            // Prepare FormData for backend API
+            // Step 2: Prepare upload
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: 'Preparing files for upload...',
+                percentage: 10
+            }));
+
             const formData = new FormData();
-            imageFiles.forEach((file) => {
+            imageFiles.forEach((file, index) => {
                 formData.append('files', file);
+                setBackendProgress(prev => ({
+                    ...prev,
+                    currentStep: `Adding file ${index + 1}/${imageFiles.length}: ${file.name}`,
+                    percentage: 10 + (index / imageFiles.length) * 10
+                }));
             });
             formData.append('engine', 'auto');
             formData.append('enhance_image', 'true');
             formData.append('extract_structured', 'true');
 
-            // Call backend OCR API
-            const response = await fetch('http://localhost:8000/api/ocr/batch', {
-                method: 'POST',
-                body: formData,
+            // Step 3: Upload and process
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: 'Uploading files to backend...',
+                percentage: 25,
+                status: 'uploading'
+            }));
+
+            // Create XMLHttpRequest to track upload progress
+            const uploadPromise = new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                // Track upload progress
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const uploadProgress = (e.loaded / e.total) * 100;
+                        setBackendProgress(prev => ({
+                            ...prev,
+                            currentStep: 'Uploading files to backend...',
+                            percentage: 25 + (uploadProgress * 0.25), // 25% to 50% for upload
+                            status: 'uploading'
+                        }));
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            resolve(response);
+                        } catch (error) {
+                            reject(new Error('Failed to parse response'));
+                        }
+                    } else {
+                        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    reject(new Error('Network error occurred'));
+                });
+
+                xhr.open('POST', 'http://localhost:8000/api/ocr/batch');
+                xhr.send(formData);
             });
 
-            if (!response.ok) {
-                throw new Error(`Backend OCR failed: ${response.status} ${response.statusText}`);
-            }
+            // Step 4: Processing simulation (since we can't get real-time progress from backend)
+            const processingInterval = setInterval(() => {
+                setBackendProgress(prev => {
+                    if (prev.percentage < 85) {
+                        return {
+                            ...prev,
+                            currentStep: 'Processing images with OCR...',
+                            percentage: Math.min(prev.percentage + 2, 85),
+                            status: 'processing'
+                        };
+                    }
+                    return prev;
+                });
+            }, 500);
 
-            const result = await response.json();
+            const result = await uploadPromise;
+            clearInterval(processingInterval);
+
+            // Step 5: Processing complete
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: 'Extracting location data...',
+                percentage: 90,
+                status: 'extracting'
+            }));
+
             console.log('Backend OCR Results:', result);
 
             // Convert backend results to format expected by onOCRComplete
@@ -61,16 +160,39 @@ export default function FileUpload({ onFilesUploaded, onOCRComplete }) {
                 }
             };
 
+            // Final step
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: 'Processing completed successfully!',
+                percentage: 100,
+                status: 'completed'
+            }));
+
             setOCRResults(convertedResults);
             setOCRError(null);
             onOCRComplete?.(convertedResults);
 
+            // Reset progress after a short delay
+            setTimeout(() => {
+                setBackendProgress(prev => ({ ...prev, status: 'idle' }));
+            }, 2000);
+
         } catch (error) {
             console.error('Backend OCR processing failed:', error);
+            setBackendProgress(prev => ({
+                ...prev,
+                currentStep: `Error: ${error.message}`,
+                status: 'error'
+            }));
+            
             console.log('Falling back to frontend processing');
             setOCRError(`Backend processing failed: ${error.message}. Falling back to frontend processing.`);
-            // Fallback to frontend processing
-            processFiles(imageFiles, 'auto');
+            
+            // Reset progress and fallback to frontend processing
+            setTimeout(() => {
+                setBackendProgress(prev => ({ ...prev, status: 'idle' }));
+                processFiles(imageFiles, 'auto');
+            }, 3000);
         } finally {
             setIsBackendProcessing(false);
         }
@@ -255,6 +377,70 @@ export default function FileUpload({ onFilesUploaded, onOCRComplete }) {
                 </div>
             )}
 
+            {/* Enhanced Backend Processing Progress Bar */}
+            {(isBackendProcessing || backendProgress.status !== 'idle') && (
+                <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium text-gray-900">
+                            Processing Images with AI
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                            {backendProgress.percentage.toFixed(0)}%
+                        </span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
+                        <div 
+                            className={`h-2.5 rounded-full transition-all duration-300 ${
+                                backendProgress.status === 'error' ? 'bg-red-500' :
+                                backendProgress.status === 'completed' ? 'bg-green-500' :
+                                'bg-blue-500'
+                            }`}
+                            style={{ width: `${backendProgress.percentage}%` }}
+                        ></div>
+                    </div>
+                    
+                    {/* Status Text */}
+                    <div className="flex items-center justify-between">
+                        <span className={`text-sm ${
+                            backendProgress.status === 'error' ? 'text-red-600' :
+                            backendProgress.status === 'completed' ? 'text-green-600' :
+                            'text-blue-600'
+                        }`}>
+                            {backendProgress.currentStep}
+                        </span>
+                        
+                        {/* File Counter */}
+                        {backendProgress.totalFiles > 0 && (
+                            <span className="text-xs text-gray-500">
+                                {backendProgress.filesProcessed}/{backendProgress.totalFiles} files
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Current File */}
+                    {backendProgress.currentFile && (
+                        <div className="mt-2 text-xs text-gray-600 truncate">
+                            Current: {backendProgress.currentFile}
+                        </div>
+                    )}
+
+                    {/* Status Icon */}
+                    <div className="flex items-center mt-2">
+                        {backendProgress.status === 'completed' && (
+                            <span className="text-green-500 mr-2">✅</span>
+                        )}
+                        {backendProgress.status === 'error' && (
+                            <span className="text-red-500 mr-2">❌</span>
+                        )}
+                        {(backendProgress.status === 'processing' || backendProgress.status === 'uploading' || backendProgress.status === 'extracting') && (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* OCR Processing Status */}
             <OCRStatus
                 isProcessing={isProcessing}
@@ -283,18 +469,6 @@ export default function FileUpload({ onFilesUploaded, onOCRComplete }) {
                 results={ocrResults}
                 onLocationSelect={handleLocationSelect}
             />
-
-            {/* Auto-processing status indicator */}
-            {(isProcessing || isBackendProcessing) && (
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        <span className="text-sm text-blue-800">
-                            {isBackendProcessing ? 'Processing with backend API...' : 'Automatically processing images...'}
-                        </span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

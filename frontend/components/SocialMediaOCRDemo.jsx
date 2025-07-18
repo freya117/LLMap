@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import OCRAnalysisPanel from './OCRAnalysisPanel';
 
 export default function SocialMediaOCRDemo() {
   const [files, setFiles] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStage, setProcessingStage] = useState('');
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
 
@@ -18,6 +20,8 @@ export default function SocialMediaOCRDemo() {
     try {
       console.log('Processing files:', acceptedFiles.map(f => f.name));
       
+      setProcessingStage('Preparing files for upload...');
+      
       // Process files with backend API
       const formData = new FormData();
       acceptedFiles.forEach(file => {
@@ -29,8 +33,10 @@ export default function SocialMediaOCRDemo() {
       formData.append('enhance_image', 'true');
       formData.append('extract_structured', 'true');
       
-      // Call Enhanced OCR + AI Pipeline API
-      const response = await fetch('http://localhost:8000/api/ai/process-batch', {
+      setProcessingStage('Uploading to backend API...');
+      
+      // Call basic OCR API
+      const response = await fetch('http://localhost:8000/api/ocr/batch', {
         method: 'POST',
         body: formData
       });
@@ -39,6 +45,8 @@ export default function SocialMediaOCRDemo() {
         const errorText = await response.text();
         throw new Error(`OCR processing failed (${response.status}): ${errorText}`);
       }
+      
+      setProcessingStage('Processing OCR results...');
       
       const data = await response.json();
       console.log('OCR Results:', data);
@@ -70,23 +78,38 @@ export default function SocialMediaOCRDemo() {
       {/* Upload area */}
       <div 
         {...getRootProps()} 
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer mb-6"
+        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer mb-6 group"
       >
         <input {...getInputProps()} />
         <div className="space-y-4">
-          <div className="text-4xl">📱</div>
-          <p className="text-lg font-medium">Drop social media screenshots here</p>
+          <div className="text-5xl group-hover:scale-110 transition-transform duration-200">📱</div>
+          <p className="text-lg font-medium group-hover:text-blue-600 transition-colors">Drop social media screenshots here</p>
           <p className="text-sm text-gray-500">or click to select files</p>
-          <p className="text-xs text-gray-400">Supports PNG, JPG, JPEG</p>
+          <div className="flex items-center justify-center space-x-2 text-xs text-gray-400 mt-2">
+            <span className="px-2 py-1 bg-gray-100 rounded">PNG</span>
+            <span className="px-2 py-1 bg-gray-100 rounded">JPG</span>
+            <span className="px-2 py-1 bg-gray-100 rounded">JPEG</span>
+          </div>
         </div>
       </div>
       
-      {/* Processing indicator */}
+      {/* Processing indicator with progress bar */}
       {isProcessing && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span className="text-blue-800">Processing {files.length} file(s)...</span>
+        <div className="mb-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-blue-800 font-semibold text-lg">Processing with backend API...</span>
+          </div>
+          <div className="w-full bg-blue-200 rounded-full h-4 mb-3">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full animate-pulse shadow-sm" style={{ width: '100%' }}></div>
+          </div>
+          <div className="text-center space-y-1">
+            <div className="text-sm text-blue-700 font-medium">
+              {processingStage || `Processing ${files.length} file(s) • OCR + Location Extraction + AI Analysis`}
+            </div>
+            <div className="text-xs text-blue-600">
+              This may take a few moments depending on file size and content complexity
+            </div>
           </div>
         </div>
       )}
@@ -287,6 +310,15 @@ export default function SocialMediaOCRDemo() {
           )}
         </div>
       )}
+
+      {/* OCR Analysis Panel - Always visible comprehensive analysis section */}
+      <div className="mt-8 border-t-2 border-gray-200 pt-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Comprehensive OCR Analysis & Results</h2>
+          <p className="text-gray-600">Detailed analysis of extracted text, location comparison, and AI export formats</p>
+        </div>
+        <OCRAnalysisPanel results={results} files={files} />
+      </div>
     </div>
   );
 }
