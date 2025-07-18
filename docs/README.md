@@ -1,84 +1,42 @@
 # LLMap Documentation
 
-## Architecture Overview
+## 📚 Documentation Overview
 
-LLMap follows a microservices architecture with clear separation between frontend and backend.
+This directory contains the essential documentation for LLMap.
 
-## API Documentation
+### Core Documents
 
-### Core Endpoints
+1. **[Architecture Guide](./architecture.md)** - System architecture and technical overview
+2. **[API Reference](./api-reference.md)** - Complete API documentation and usage examples
+3. **[Development Guide](./development.md)** - Setup, testing, and development workflow
+4. **[Performance Guide](./performance.md)** - Performance metrics, optimization, and troubleshooting
 
-#### Upload and Process
-```
-POST /api/upload
-Content-Type: multipart/form-data
+### Quick Start
 
-Response: {
-  "file_id": "uuid",
-  "extracted_text": "...",
-  "locations": [...]
-}
-```
+```bash
+# Backend setup
+cd backend
+pip install -r requirements.txt
+export OPENAI_API_KEY=your_key
+python main.py
 
-#### Location Extraction
-```
-POST /api/extract-locations
-{
-  "text": "Visit the best ramen in Tokyo...",
-  "context": "restaurant recommendations"
-}
-
-Response: {
-  "locations": [
-    {
-      "name": "Ramen Shop",
-      "address": "Tokyo, Japan",
-      "coordinates": [139.6917, 35.6895],
-      "confidence": 0.95
-    }
-  ]
-}
+# Frontend setup
+cd frontend
+npm install && npm run dev
 ```
 
-## Data Formats
+### Key Features
 
-### GeoJSON Structure
-```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [lng, lat]
-      },
-      "properties": {
-        "name": "Location Name",
-        "description": "AI-extracted description",
-        "source": "image|text|link",
-        "confidence": 0.95,
-        "tags": ["restaurant", "recommended"]
-      }
-    }
-  ]
-}
-```
+- **AI-Powered Location Extraction**: Intelligent recognition of places and businesses
+- **Multi-Modal Input Processing**: Handle images, screenshots, text, and links
+- **Advanced OCR Processing**: Dual-engine OCR with multi-language support
+- **Interactive Map Visualization**: Dynamic maps with rich location context
+- **Batch Processing**: Handle multiple inputs simultaneously
 
-## MCP Integration
+### What LLMap Does
 
-LLMap can be integrated as an MCP server for AI agents:
-
-```json
-{
-  "mcpServers": {
-    "llmap": {
-      "command": "python",
-      "args": ["-m", "llmap.mcp_server"],
-      "env": {
-        "LLMAP_API_URL": "http://localhost:8000"
-      }
-    }
-  }
-}
-```
+Transform scattered location information from various sources into intelligent, interactive maps:
+- Extract locations from travel photos and social media posts
+- Process screenshots from maps, reviews, and navigation apps
+- Generate organized, shareable maps from unstructured content
+- Support multi-language content (English, Chinese, mixed)
