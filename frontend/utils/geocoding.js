@@ -26,44 +26,80 @@ export class GeocodingService {
   }
 
   // FIXED: Geocode address to coordinates - always returns [lng, lat] format
-  async geocodeAddress(address) {
+  async geocodeAddress(address, options = {}) {
     console.log(`🔍 Geocoding address: "${address}"`);
     await this.rateLimit();
     
     try {
+      // Enhanced query with geographic context
+      let searchQuery = address;
+      
+      // If it looks like a business name without location context, add California context
+      if (!this.hasLocationContext(address) && options.addCaliforniaContext !== false) {
+        searchQuery = `${address}, California, USA`;
+        console.log(`🎯 Enhanced query with CA context: "${searchQuery}"`);
+      }
+      
+      const params = {
+        q: searchQuery,
+        format: 'json',
+        limit: 5, // Get more results to find the best match
+        addressdetails: 1
+      };
+      
+      // Add geographic bounds for California if no specific location context
+      if (!this.hasLocationContext(address)) {
+        // California bounding box: roughly -124.4 to -114.1 longitude, 32.5 to 42.0 latitude
+        params.viewbox = '-124.4,32.5,-114.1,42.0';
+        params.bounded = 1;
+      }
+      
       const response = await fetch(
-        `${NOMINATIM_BASE_URL}/search?` + 
-        new URLSearchParams({
-          q: address,
-          format: 'json',
-          limit: 1,
-          addressdetails: 1
-        })
+        `${NOMINATIM_BASE_URL}/search?` + new URLSearchParams(params)
       );
       
       const data = await response.json();
       
       if (data && data.length > 0) {
-        const result = data[0];
-        const lng = parseFloat(result.lon);
-        const lat = parseFloat(result.lat);
+        // Find the best match (prefer results in California)
+        let bestResult = data[0];
+        
+        // Look for California results if we have multiple options
+        if (data.length > 1) {
+          const californiaResult = data.find(result => 
+            result.display_name.toLowerCase().includes('california') ||
+            result.display_name.toLowerCase().includes(', ca,') ||
+            result.display_name.toLowerCase().includes(', ca ')
+          );
+          
+          if (californiaResult) {
+            bestResult = californiaResult;
+            console.log(`🎯 Found California-specific result: ${californiaResult.display_name}`);
+          }
+        }
+        
+        const lng = parseFloat(bestResult.lon);
+        const lat = parseFloat(bestResult.lat);
         
         // FIXED: Always return coordinates in [lng, lat] format (GeoJSON standard)
         const coordinates = [lng, lat];
         
         console.log(`✅ Geocoded "${address}" -> [${lng}, ${lat}]`);
+        console.log(`📍 Location: ${bestResult.display_name}`);
         
         return {
           success: true,
           coordinates: coordinates, // [lng, lat] format
-          displayName: result.display_name,
-          confidence: parseFloat(result.importance) || 0.5,
-          boundingBox: result.boundingbox ? result.boundingbox.map(parseFloat) : null,
+          displayName: bestResult.display_name,
+          confidence: parseFloat(bestResult.importance) || 0.5,
+          boundingBox: bestResult.boundingbox ? bestResult.boundingbox.map(parseFloat) : null,
           metadata: {
-            osm_id: result.osm_id,
-            osm_type: result.osm_type,
-            place_id: result.place_id,
-            licence: result.licence
+            osm_id: bestResult.osm_id,
+            osm_type: bestResult.osm_type,
+            place_id: bestResult.place_id,
+            licence: bestResult.licence,
+            enhanced_query: searchQuery !== address,
+            original_query: address
           }
         };
       }
@@ -82,6 +118,22 @@ export class GeocodingService {
         originalAddress: address
       };
     }
+  }
+
+  // Helper method to check if address already has location context
+  hasLocationContext(address) {
+    const locationIndicators = [
+      // State abbreviations
+      /\b[A-Z]{2}\b/,
+      // Common location words
+      /\b(california|ca|san francisco|oakland|berkeley|los angeles|san diego|street|avenue|road|boulevard|drive)\b/i,
+      // ZIP codes
+      /\b\d{5}(-\d{4})?\b/,
+      // Coordinates
+      /[-+]?\d{1,3}\.\d+/
+    ];
+    
+    return locationIndicators.some(pattern => pattern.test(address));
   }
 
   // FIXED: Reverse geocode coordinates to address - accepts both formats

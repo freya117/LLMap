@@ -15,11 +15,11 @@ def test_ocr_processing():
     
     # Test with one of the Google Maps images
     test_images = [
-        "../data/google map/IMG_3193.PNG",
-        "../data/google map/IMG_3194.PNG", 
-        "../data/google map/IMG_3195.PNG",
-        "../data/google map/IMG_3196.PNG",
-        "../data/google map/IMG_3197.PNG"
+        "data/google map/IMG_3193.PNG",
+        "data/google map/IMG_3194.PNG", 
+        "data/google map/IMG_3195.PNG",
+        "data/google map/IMG_3196.PNG",
+        "data/google map/IMG_3197.PNG"
     ]
     
     for image_path in test_images:

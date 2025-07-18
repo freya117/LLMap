@@ -2,25 +2,25 @@ import { useState, useCallback } from 'react';
 import OCRProcessor, { OCRStatus, OCRResults } from './OCRProcessor';
 
 /**
- * OCR 集成组件 - 统一前后端 OCR 功能
- * 支持前端 Tesseract.js 和后端 API 两种模式
+ * OCR Integration Component - Unified frontend and backend OCR functionality
+ * Supports both frontend Tesseract.js and backend API modes
  */
 export default function OCRIntegration({ onLocationsExtracted, onError }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [ocrResults, setOcrResults] = useState(null);
-    const [processingMode, setProcessingMode] = useState('frontend'); // 'frontend' 或 'backend'
+    const [processingMode, setProcessingMode] = useState('frontend'); // 'frontend' or 'backend'
     const [ocrEngine, setOcrEngine] = useState('auto'); // 'tesseract', 'paddle', 'auto'
     const [availableEngines, setAvailableEngines] = useState(null);
     const [isLoadingEngines, setIsLoadingEngines] = useState(false);
 
-    // 初始化 OCR 处理器
+    // Initialize OCR processor
     const ocrProcessor = OCRProcessor({
         onOCRComplete: handleOCRComplete,
         onError: handleOCRError
     });
 
     /**
-     * 获取可用的 OCR 引擎信息
+     * Get available OCR engine information
      */
     const fetchAvailableEngines = useCallback(async () => {
         if (processingMode !== 'backend') return;
@@ -33,103 +33,114 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                 setAvailableEngines(data);
                 setOcrEngine(data.recommended || 'auto');
             } else {
-                console.warn('无法获取后端引擎信息');
+                console.warn('Unable to get backend engine information');
             }
         } catch (error) {
-            console.warn('获取后端引擎信息失败:', error);
+            console.warn('Failed to get backend engine information:', error);
         } finally {
             setIsLoadingEngines(false);
         }
     }, [processingMode]);
 
     /**
-     * 处理模式切换
+     * Handle processing mode change
      */
     const handleModeChange = useCallback((newMode) => {
         setProcessingMode(newMode);
         ocrProcessor.setOcrMode(newMode);
         
-        // 如果切换到后端模式，获取可用引擎
+        // If switching to backend mode, get available engines
         if (newMode === 'backend') {
             fetchAvailableEngines();
         }
     }, [ocrProcessor, fetchAvailableEngines]);
 
     /**
-     * 处理文件选择
+     * Handle file selection - automatically start processing
      */
-    const handleFileSelect = useCallback((event) => {
+    const handleFileSelect = useCallback(async (event) => {
         const files = Array.from(event.target.files);
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
         
         if (imageFiles.length !== files.length) {
-            onError?.('只支持图像文件，已过滤非图像文件');
+            onError?.('Only image files are supported, non-image files have been filtered out');
         }
         
         setSelectedFiles(imageFiles);
-        setOcrResults(null); // 清除之前的结果
-    }, [onError]);
+        setOcrResults(null); // Clear previous results
+        
+        // Automatically start processing
+        if (imageFiles.length > 0) {
+            setTimeout(() => startOCRProcessing(imageFiles), 500); // Brief delay to ensure state update
+        }
+    }, [onError, startOCRProcessing]);
 
     /**
-     * 处理拖拽上传
+     * Handle drag and drop upload - automatically start processing
      */
-    const handleDrop = useCallback((event) => {
+    const handleDrop = useCallback(async (event) => {
         event.preventDefault();
         const files = Array.from(event.dataTransfer.files);
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
         
         if (imageFiles.length > 0) {
-            setSelectedFiles(prev => [...prev, ...imageFiles]);
+            const newFiles = [...selectedFiles, ...imageFiles];
+            setSelectedFiles(newFiles);
+            setOcrResults(null); // Clear previous results
+            
+            // Automatically start processing newly uploaded files
+            setTimeout(() => startOCRProcessing(newFiles), 500);
         } else {
-            onError?.('请拖拽图像文件');
+            onError?.('Please drag image files');
         }
-    }, [onError]);
+    }, [onError, selectedFiles, startOCRProcessing]);
 
     const handleDragOver = useCallback((event) => {
         event.preventDefault();
     }, []);
 
     /**
-     * 开始 OCR 处理
+     * Automatically start OCR processing (triggered after file upload)
      */
-    const startOCRProcessing = useCallback(async () => {
-        if (selectedFiles.length === 0) {
-            onError?.('请先选择图像文件');
+    const startOCRProcessing = useCallback(async (filesToProcess = null) => {
+        const files = filesToProcess || selectedFiles;
+        if (files.length === 0) {
+            onError?.('Please select image files first');
             return;
         }
 
-        // 设置 OCR 模式和引擎
+        // Set OCR mode and engine
         ocrProcessor.setOcrMode(processingMode);
         
-        // 开始处理
-        await ocrProcessor.processFiles(selectedFiles, ocrEngine);
+        // Start processing
+        await ocrProcessor.processFiles(files, ocrEngine);
     }, [selectedFiles, processingMode, ocrEngine, ocrProcessor, onError]);
 
     /**
-     * OCR 完成回调
+     * OCR completion callback
      */
     function handleOCRComplete(results) {
-        console.log('OCR 处理完成:', results);
+        console.log('OCR processing completed:', results);
         setOcrResults(results);
         
-        // 将提取的地点信息传递给父组件
+        // Pass extracted location information to parent component
         if (results.locations && results.locations.length > 0) {
-            // 转换为标准格式
+            // Convert to standard format
             const standardLocations = convertOCRResultsToStandardFormat(results);
             onLocationsExtracted?.(standardLocations);
         }
     }
 
     /**
-     * OCR 错误回调
+     * OCR error callback
      */
     function handleOCRError(error) {
-        console.error('OCR 处理错误:', error);
+        console.error('OCR processing error:', error);
         onError?.(error);
     }
 
     /**
-     * 将 OCR 结果转换为标准地点格式
+     * Convert OCR results to standard location format
      */
     const convertOCRResultsToStandardFormat = useCallback((ocrResults) => {
         return ocrResults.locations.map((location, index) => ({
@@ -151,7 +162,7 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
     }, [processingMode, ocrEngine]);
 
     /**
-     * 获取地点类型标签
+     * Get location type label
      */
     const getLocationTypeLabel = useCallback((type) => {
         const typeMap = {
@@ -165,14 +176,14 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
     }, []);
 
     /**
-     * 移除选中的文件
+     * Remove selected file
      */
     const removeFile = useCallback((index) => {
         setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     }, []);
 
     /**
-     * 清除所有文件
+     * Clear all files
      */
     const clearAllFiles = useCallback(() => {
         setSelectedFiles([]);
@@ -180,15 +191,15 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
     }, []);
 
     /**
-     * 选择地点回调
+     * Handle location selection callback
      */
     const handleLocationSelect = useCallback((location) => {
-        console.log('选择地点:', location);
-        // 可以在这里添加单个地点的处理逻辑
+        console.log('Selected location:', location);
+        // Can add individual location processing logic here
     }, []);
 
     /**
-     * 测试后端 OCR 功能
+     * Test backend OCR functionality
      */
     const testBackendOCR = useCallback(async () => {
         try {
@@ -198,9 +209,9 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
             
             if (response.ok) {
                 const testResults = await response.json();
-                console.log('后端 OCR 测试结果:', testResults);
+                console.log('Backend OCR test results:', testResults);
                 
-                // 将测试结果转换为标准格式
+                // Convert test results to standard format
                 if (testResults.sample_results && testResults.sample_results.length > 0) {
                     const testLocations = [];
                     
@@ -229,13 +240,13 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                     }
                 }
                 
-                onError?.(`后端测试完成：处理了 ${testResults.processed_samples} 个示例图片`);
+                onError?.(`Backend test completed: processed ${testResults.processed_samples} sample images`);
             } else {
-                throw new Error('后端测试失败');
+                throw new Error('Backend test failed');
             }
         } catch (error) {
-            console.error('后端 OCR 测试失败:', error);
-            onError?.('后端 OCR 测试失败，请确保后端服务正在运行');
+            console.error('Backend OCR test failed:', error);
+            onError?.('Backend OCR test failed, please ensure backend service is running');
         }
     }, [onLocationsExtracted, onError]);
 
@@ -243,21 +254,21 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
         <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
-                    🔍 OCR 文本识别
+                    🔍 OCR Text Recognition
                 </h2>
                 <div className="flex items-center space-x-2">
-                    {/* OCR 模式选择 */}
+                    {/* OCR Mode Selection */}
                     <select
                         value={processingMode}
                         onChange={(e) => handleModeChange(e.target.value)}
                         className="text-xs border rounded px-2 py-1"
                         disabled={ocrProcessor.isProcessing}
                     >
-                        <option value="frontend">前端处理</option>
-                        <option value="backend">后端处理</option>
+                        <option value="frontend">Frontend Processing</option>
+                        <option value="backend">Backend Processing</option>
                     </select>
                     
-                    {/* OCR 引擎选择（后端模式） */}
+                    {/* OCR Engine Selection (Backend Mode) */}
                     {processingMode === 'backend' && (
                         <select
                             value={ocrEngine}
@@ -265,29 +276,29 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                             className="text-xs border rounded px-2 py-1"
                             disabled={ocrProcessor.isProcessing || isLoadingEngines}
                         >
-                            <option value="auto">自动选择</option>
+                            <option value="auto">Auto Select</option>
                             <option value="tesseract">Tesseract</option>
                             <option value="paddle">PaddleOCR</option>
                         </select>
                     )}
                     
-                    {/* 测试按钮 */}
+                    {/* Test Button */}
                     {processingMode === 'backend' && (
                         <button
                             onClick={testBackendOCR}
                             className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
                             disabled={ocrProcessor.isProcessing}
                         >
-                            测试后端
+                            Test Backend
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* 引擎状态显示 */}
+            {/* Engine Status Display */}
             {processingMode === 'backend' && availableEngines && (
                 <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">后端引擎状态</h4>
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Backend Engine Status</h4>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                         {Object.entries(availableEngines.engines).map(([key, engine]) => (
                             <div key={key} className="flex items-center">
@@ -299,17 +310,17 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                         ))}
                     </div>
                     <p className="text-xs text-blue-700 mt-1">
-                        推荐引擎: {availableEngines.recommended}
+                        Recommended Engine: {availableEngines.recommended}
                     </p>
                 </div>
             )}
 
             <p className="text-gray-600 mb-6">
-                上传包含地点信息的图像（截图、照片等），AI 将自动识别并提取地理位置信息。
-                支持中英文混合识别。
+                Upload images containing location information (screenshots, photos, etc.), and the system will automatically start processing and extract geographic location information.
+                Supports mixed Chinese and English recognition, and results will be displayed automatically after processing.
             </p>
 
-            {/* 文件上传区域 */}
+            {/* File Upload Area */}
             <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors"
                 onDrop={handleDrop}
@@ -319,10 +330,10 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                     <div className="text-4xl">📷</div>
                     <div>
                         <p className="text-lg font-medium text-gray-900">
-                            拖拽图像文件到这里
+                            Drag image files here
                         </p>
                         <p className="text-sm text-gray-500 mt-1">
-                            或者点击选择文件
+                            or click to select files
                         </p>
                     </div>
                     <input
@@ -338,24 +349,24 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                         htmlFor="ocr-file-input"
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer disabled:opacity-50"
                     >
-                        选择图像文件
+                        Select Image Files
                     </label>
                 </div>
             </div>
 
-            {/* 选中的文件列表 */}
+            {/* Selected Files List */}
             {selectedFiles.length > 0 && (
                 <div className="mt-6">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-medium text-gray-900">
-                            已选择 {selectedFiles.length} 个文件
+                            Selected {selectedFiles.length} files
                         </h3>
                         <button
                             onClick={clearAllFiles}
                             className="text-xs text-red-600 hover:text-red-800"
                             disabled={ocrProcessor.isProcessing}
                         >
-                            清除全部
+                            Clear All
                         </button>
                     </div>
                     
@@ -379,49 +390,38 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
                         ))}
                     </div>
 
-                    {/* 开始处理按钮 */}
-                    <div className="mt-4 flex justify-center">
-                        <button
-                            onClick={startOCRProcessing}
-                            disabled={ocrProcessor.isProcessing || selectedFiles.length === 0}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                        >
-                            {ocrProcessor.isProcessing ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>处理中...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>🚀</span>
-                                    <span>开始 OCR 识别</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    {/* Auto Processing Status Display */}
+                    {ocrProcessor.isProcessing && (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center justify-center space-x-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                <span className="text-sm text-blue-800">Automatically processing images...</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* OCR 处理状态 */}
+            {/* OCR Processing Status */}
             <OCRStatus
                 isProcessing={ocrProcessor.isProcessing}
                 progress={ocrProcessor.progress}
                 currentFile={ocrProcessor.currentFile}
             />
 
-            {/* OCR 结果显示 */}
+            {/* OCR Results Display */}
             <OCRResults
                 results={ocrResults}
                 onLocationSelect={handleLocationSelect}
             />
 
-            {/* 处理模式说明 */}
+            {/* Processing Mode Description */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">处理模式说明</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Processing Mode Description</h4>
                 <div className="text-xs text-gray-600 space-y-1">
-                    <p><strong>前端处理:</strong> 使用 Tesseract.js 在浏览器中处理，数据不会上传到服务器，但处理速度较慢</p>
-                    <p><strong>后端处理:</strong> 使用服务器端的 OCR 引擎，处理速度快，支持更多功能，但需要上传图像</p>
-                    <p><strong>引擎选择:</strong> Tesseract 适合英文，PaddleOCR 对中文支持更好，自动选择会根据可用性智能选择</p>
+                    <p><strong>Frontend Processing:</strong> Uses Tesseract.js in the browser, data is not uploaded to the server, but processing speed is slower</p>
+                    <p><strong>Backend Processing:</strong> Uses server-side OCR engines, faster processing speed with more features, but requires image upload</p>
+                    <p><strong>Engine Selection:</strong> Tesseract is suitable for English, PaddleOCR has better Chinese support, auto-select will intelligently choose based on availability</p>
                 </div>
             </div>
         </div>
@@ -429,7 +429,7 @@ export default function OCRIntegration({ onLocationsExtracted, onError }) {
 }
 
 /**
- * OCR 快速操作按钮组件
+ * OCR Quick Actions Button Component
  */
 export function OCRQuickActions({ onLoadSampleImages, onClearResults, onTestBackend }) {
     return (
@@ -438,20 +438,20 @@ export function OCRQuickActions({ onLoadSampleImages, onClearResults, onTestBack
                 onClick={onLoadSampleImages}
                 className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
             >
-                📷 加载示例图片
+                📷 Load Sample Images
             </button>
             <button
                 onClick={onClearResults}
                 className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
             >
-                🗑️ 清除结果
+                🗑️ Clear Results
             </button>
             {onTestBackend && (
                 <button
                     onClick={onTestBackend}
                     className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
                 >
-                    🧪 测试后端
+                    🧪 Test Backend
                 </button>
             )}
         </div>

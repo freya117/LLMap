@@ -11,91 +11,7 @@ export default function Home() {
   const [processingMode, setProcessingMode] = useState('test');
   const [processingStatus, setProcessingStatus] = useState('');
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'ocr'
-  const [isOCRProcessing, setIsOCRProcessing] = useState(false);
   const [ocrTestResults, setOcrTestResults] = useState(null);
-
-  // Handle OCR testing for uploaded files
-  const handleOCRTest = async () => {
-    if (uploadedFiles.length === 0) {
-      setProcessingStatus('Please upload images first');
-      return;
-    }
-
-    setIsOCRProcessing(true);
-    setProcessingStatus('Processing OCR...');
-    setOcrTestResults(null);
-
-    try {
-      // First check if backend is available
-      const healthResponse = await fetch('http://localhost:8000/health');
-      if (!healthResponse.ok) {
-        throw new Error('Backend server is not running. Please start the backend with: cd backend && python main.py');
-      }
-
-      const formData = new FormData();
-      uploadedFiles.forEach((fileData, index) => {
-        // Extract the actual File object from the wrapped file data
-        const actualFile = fileData.file || fileData;
-        console.log(`Adding file ${index}:`, actualFile.name, actualFile.type, actualFile.size);
-        
-        if (actualFile instanceof File) {
-          formData.append('files', actualFile);
-        } else {
-          console.error('Invalid file object:', fileData);
-        }
-      });
-      formData.append('engine', 'auto');
-      formData.append('enhance_image', 'true');
-      formData.append('extract_structured', 'true');
-      
-      // Debug FormData contents
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
-      const response = await fetch('http://localhost:8000/api/ocr/batch', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OCR processing failed: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log('OCR Test Results:', result);
-      
-      // Process and standardize the results
-      const standardizedResults = processOCRResultsToStandard(result);
-      
-      // Compare with ground truth
-      const groundTruthComparison = await compareWithGroundTruth(result);
-      
-      setOcrTestResults({
-        ...result,
-        standardized: standardizedResults,
-        groundTruthComparison: groundTruthComparison
-      });
-      setProcessingStatus('OCR processing completed');
-      
-      // Also update the map with extracted locations
-      if (result.aggregated_data && result.aggregated_data.locations) {
-        const geocodedLocations = await geocodeOCRResults({
-          locations: result.aggregated_data.locations
-        });
-        setExtractedLocations(geocodedLocations);
-        setProcessingMode('ocr');
-      }
-
-    } catch (error) {
-      console.error('OCR Test Error:', error);
-      setProcessingStatus(`OCR test failed: ${error.message}`);
-    } finally {
-      setIsOCRProcessing(false);
-    }
-  };
 
   const handleFilesUploaded = (files) => {
     setUploadedFiles(files);
@@ -111,6 +27,31 @@ export default function Home() {
   const handleOCRComplete = async (results) => {
     console.log('OCR processing completed:', results);
     setOcrResults(results);
+    
+    // If this is from the automatic backend processing, also set detailed results
+    if (results.processing_stats || results.aggregated_data) {
+      // This is backend API results - show detailed results
+      const standardizedResults = processOCRResultsToStandard(results);
+      const groundTruthComparison = await compareWithGroundTruth(results);
+      
+      setOcrTestResults({
+        ...results,
+        standardized: standardizedResults,
+        groundTruthComparison: groundTruthComparison
+      });
+      
+      // Log detailed performance metrics
+      if (groundTruthComparison) {
+        console.log('🎯 OCR Performance Analysis:');
+        console.log(`📊 Precision: ${(groundTruthComparison.accuracy_metrics.precision * 100).toFixed(1)}%`);
+        console.log(`📊 Recall: ${(groundTruthComparison.accuracy_metrics.recall * 100).toFixed(1)}%`);
+        console.log(`📊 F1 Score: ${(groundTruthComparison.accuracy_metrics.f1_score * 100).toFixed(1)}%`);
+        console.log(`✅ Matches: ${groundTruthComparison.matches.length}/${groundTruthComparison.ground_truth_total}`);
+        console.log(`❌ False Positives: ${groundTruthComparison.false_positives.length}`);
+        console.log(`⚠️ Missing: ${groundTruthComparison.missing.length}`);
+      }
+    }
+    
     setProcessingStatus('Performing geocoding...');
     
     // Convert OCR extracted location information to map-ready format
@@ -164,7 +105,42 @@ export default function Home() {
     return locations;
   };
 
-  // Load and compare with ground truth data
+
+
+  // String similarity calculation using Levenshtein distance
+  const calculateStringSimilarity = (str1, str2) => {
+    const matrix = [];
+    const len1 = str1.length;
+    const len2 = str2.length;
+
+    if (len1 === 0) return len2 === 0 ? 1 : 0;
+    if (len2 === 0) return 0;
+
+    // Initialize matrix
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    // Fill matrix
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,      // deletion
+          matrix[i][j - 1] + 1,      // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+
+    const maxLen = Math.max(len1, len2);
+    return (maxLen - matrix[len1][len2]) / maxLen;
+  };
+
+  // Enhanced ground truth comparison with better matching logic
   const compareWithGroundTruth = async (ocrResults) => {
     try {
       const response = await fetch('/data/ground_truth.json');
@@ -177,68 +153,94 @@ export default function Home() {
         missing: [],
         false_positives: [],
         accuracy_metrics: {
-          exact_matches: 0,
-          partial_matches: 0,
-          location_matches: 0,
           precision: 0,
           recall: 0,
           f1_score: 0
         }
       };
-
-      // Compare each ground truth location with OCR results
+      
+      // Enhanced matching with multiple criteria
       groundTruth.locations.forEach(gtLocation => {
-        const ocrMatches = ocrResults.aggregated_data?.locations?.filter(ocrLoc => {
-          const nameMatch = ocrLoc.name.toLowerCase().includes(gtLocation.business_name.toLowerCase()) ||
-                           gtLocation.business_name.toLowerCase().includes(ocrLoc.name.toLowerCase());
-          const addressMatch = gtLocation.address.toLowerCase().includes(ocrLoc.name.toLowerCase()) ||
-                              ocrLoc.name.toLowerCase().includes(gtLocation.address.toLowerCase());
-          return nameMatch || addressMatch;
-        }) || [];
-
-        if (ocrMatches.length > 0) {
-          const bestMatch = ocrMatches[0];
-          const exactMatch = bestMatch.name.toLowerCase() === gtLocation.business_name.toLowerCase();
-          const partialMatch = bestMatch.name.toLowerCase().includes(gtLocation.business_name.toLowerCase()) ||
-                              gtLocation.business_name.toLowerCase().includes(bestMatch.name.toLowerCase());
-          
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        if (ocrResults.aggregated_data?.locations) {
+          ocrResults.aggregated_data.locations.forEach(ocrResult => {
+            // Calculate multiple similarity scores
+            const nameScore = calculateStringSimilarity(
+              gtLocation.business_name.toLowerCase(),
+              ocrResult.name.toLowerCase()
+            );
+            
+            // Check for partial matches (e.g., "Dave's Hot Chicken" vs "Dave's")
+            const partialNameScore = Math.max(
+              gtLocation.business_name.toLowerCase().includes(ocrResult.name.toLowerCase()) ? 0.8 : 0,
+              ocrResult.name.toLowerCase().includes(gtLocation.business_name.toLowerCase()) ? 0.8 : 0
+            );
+            
+            // Combined score with weights
+            const combinedScore = Math.max(nameScore * 0.7, partialNameScore * 0.8);
+            
+            if (combinedScore > bestScore && combinedScore > 0.5) {
+              bestScore = combinedScore;
+              bestMatch = ocrResult;
+            }
+          });
+        }
+        
+        if (bestMatch) {
           comparison.matches.push({
             ground_truth: gtLocation,
             ocr_result: bestMatch,
-            match_type: exactMatch ? 'exact' : (partialMatch ? 'partial' : 'weak'),
-            confidence: bestMatch.confidence
+            match_type: bestScore > 0.8 ? 'exact' : 'partial',
+            confidence: bestScore
           });
-
-          if (exactMatch) comparison.accuracy_metrics.exact_matches++;
-          if (partialMatch) comparison.accuracy_metrics.partial_matches++;
         } else {
           comparison.missing.push(gtLocation);
         }
       });
-
-      // Find false positives (OCR results not in ground truth)
-      ocrResults.aggregated_data?.locations?.forEach(ocrLoc => {
-        const hasMatch = comparison.matches.some(match => match.ocr_result.name === ocrLoc.name);
-        if (!hasMatch) {
-          comparison.false_positives.push(ocrLoc);
-        }
+      
+      // Find false positives (OCR results that don't match any ground truth)
+      if (ocrResults.aggregated_data?.locations) {
+        ocrResults.aggregated_data.locations.forEach(ocrResult => {
+          const isMatch = comparison.matches.some(match => 
+            match.ocr_result.name === ocrResult.name
+          );
+          if (!isMatch) {
+            comparison.false_positives.push({
+              name: ocrResult.name,
+              type: ocrResult.type || 'Unknown',
+              source: ocrResult.source || 'OCR',
+              confidence: ocrResult.confidence || 0.5
+            });
+          }
+        });
+      }
+      
+      // Calculate accuracy metrics
+      const truePositives = comparison.matches.length;
+      const falsePositives = comparison.false_positives.length;
+      const falseNegatives = comparison.missing.length;
+      
+      comparison.accuracy_metrics.precision = truePositives / (truePositives + falsePositives) || 0;
+      comparison.accuracy_metrics.recall = truePositives / (truePositives + falseNegatives) || 0;
+      comparison.accuracy_metrics.f1_score = 2 * (comparison.accuracy_metrics.precision * comparison.accuracy_metrics.recall) / 
+        (comparison.accuracy_metrics.precision + comparison.accuracy_metrics.recall) || 0;
+      
+      console.log('Ground Truth Comparison Results:', {
+        'Expected locations': groundTruth.locations.length,
+        'OCR found': ocrResults.aggregated_data?.locations?.length || 0,
+        'Correct matches': truePositives,
+        'False positives': falsePositives,
+        'Missing': falseNegatives,
+        'Precision': (comparison.accuracy_metrics.precision * 100).toFixed(1) + '%',
+        'Recall': (comparison.accuracy_metrics.recall * 100).toFixed(1) + '%',
+        'F1 Score': (comparison.accuracy_metrics.f1_score * 100).toFixed(1) + '%'
       });
-
-      // Calculate metrics
-      const totalMatches = comparison.matches.length;
-      const totalGroundTruth = groundTruth.locations.length;
-      const totalOCR = ocrResults.aggregated_data?.locations?.length || 0;
-
-      comparison.accuracy_metrics.precision = totalOCR > 0 ? totalMatches / totalOCR : 0;
-      comparison.accuracy_metrics.recall = totalGroundTruth > 0 ? totalMatches / totalGroundTruth : 0;
-      comparison.accuracy_metrics.f1_score = 
-        (comparison.accuracy_metrics.precision + comparison.accuracy_metrics.recall) > 0 ?
-        (2 * comparison.accuracy_metrics.precision * comparison.accuracy_metrics.recall) /
-        (comparison.accuracy_metrics.precision + comparison.accuracy_metrics.recall) : 0;
-
+      
       return comparison;
     } catch (error) {
-      console.error('Error loading ground truth data:', error);
+      console.error('Error comparing with ground truth:', error);
       return null;
     }
   };
@@ -415,30 +417,11 @@ export default function Home() {
                 {uploadedFiles.length > 0 && (
                   <div className="mt-6 space-y-4">
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <span className="text-green-500 mr-2">✅</span>
-                          <span className="text-sm text-green-800">
-                            {uploadedFiles.length} files uploaded successfully
-                          </span>
-                        </div>
-                        <button
-                          onClick={handleOCRTest}
-                          disabled={isOCRProcessing}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                        >
-                          {isOCRProcessing ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Processing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>🔍</span>
-                              <span>Test OCR</span>
-                            </>
-                          )}
-                        </button>
+                      <div className="flex items-center">
+                        <span className="text-green-500 mr-2">✅</span>
+                        <span className="text-sm text-green-800">
+                          {uploadedFiles.length} files uploaded successfully - Processing automatically
+                        </span>
                       </div>
                     </div>
                   </div>
