@@ -19,75 +19,6 @@ LLMap transforms scattered location information from various sources (social med
 - **Content Analysis**: Process images and screenshots for geographic data
 - **Map Creation**: Transform unstructured content into organized, interactive maps
 
-### 🔍 OCR Capabilities
-
-LLMap features a comprehensive OCR system designed specifically for extracting geographic and business information from various image sources including maps, screenshots, and social media posts.
-
-#### Dual OCR Engine Architecture
-- **Tesseract OCR**: Industry-standard engine with multi-language support and optimized configurations for different text types
-- **PaddleOCR**: Advanced Chinese-optimized engine with superior accuracy for Asian text and mixed-language content
-- **Intelligent Engine Selection**: Automatic fallback system that chooses the best engine based on content analysis and availability
-- **Performance Optimization**: Parallel processing capabilities for batch operations
-
-#### Advanced Image Preprocessing Pipeline
-- **Smart Enhancement**: Automatic contrast adjustment, brightness optimization, and sharpness enhancement using OpenCV
-- **Skew Correction**: Automatic rotation correction using Hough line detection and perspective transformation
-- **Noise Reduction**: Bilateral filtering, morphological operations, and Gaussian blur for text clarity
-- **Image Type Detection**: Adaptive processing algorithms for maps, screenshots, social media posts, and document images
-- **Resolution Optimization**: Dynamic scaling and DPI adjustment for optimal OCR accuracy
-
-#### Intelligent Text Processing & Correction
-- **OCR Error Correction**: Advanced pattern matching to fix common character confusions (0/O, 1/I/l, 5/S, etc.)
-- **Text Cleaning**: Comprehensive whitespace normalization, punctuation correction, and line break handling
-- **Multi-language Support**: Seamless processing of English, Chinese, and mixed-language content
-- **Quality Assessment**: Confidence scoring, text quality evaluation, and reliability metrics
-- **Context-Aware Filtering**: Removal of OCR artifacts and irrelevant text based on geographic context
-
-#### Structured Data Extraction Engine
-- **Geographic Information**: 
-  - Street addresses with number, street name, and directional indicators
-  - Landmarks, parks, monuments, and points of interest
-  - City, state, country, and postal code extraction
-  - Coordinate detection from map interfaces
-- **Business Information**: 
-  - Restaurant names, business types, and category classification
-  - Brand recognition and franchise identification
-  - Service descriptions and business hours
-- **Contact Details**: 
-  - Phone numbers with international format support
-  - Website URLs and social media handles
-  - Email addresses and contact information
-- **Ratings & Reviews**: 
-  - Star ratings (★★★★☆) and numerical scores
-  - Review snippets and sentiment indicators
-  - Platform-specific rating formats (Yelp, Google, etc.)
-
-#### Processing Modes & Integration
-- **Frontend Processing**: 
-  - Browser-based Tesseract.js for privacy-focused processing
-  - No server uploads required for sensitive content
-  - Real-time preview and instant feedback
-- **Backend Processing**: 
-  - High-performance server-side engines for accuracy
-  - GPU acceleration support for large batches
-  - Advanced preprocessing and post-processing pipelines
-- **Batch Processing**: 
-  - Multiple image processing with aggregated results
-  - Progress tracking and status updates
-  - Error handling and retry mechanisms
-- **API Integration**: 
-  - RESTful API endpoints for external integration
-  - Webhook support for asynchronous processing
-  - Rate limiting and authentication
-
-#### Supported Image Sources
-- **Google Maps Screenshots**: Street view, satellite view, and business listings
-- **Social Media Posts**: Instagram stories, Facebook check-ins, Twitter location tags
-- **Review Platforms**: Yelp screenshots, TripAdvisor reviews, Google Reviews
-- **Navigation Apps**: Waze screenshots, Apple Maps, and other GPS applications
-- **Business Cards**: Contact information and address extraction
-- **Menu Images**: Restaurant menus with location and contact details
-
 ## 📁 Project Structure
 
 ```
@@ -127,15 +58,6 @@ cd frontend
 npm install && npm run dev
 ```
 
-### Test the System
-```bash
-# Validate implementation
-python scripts/test_enhanced_pipeline.py
-
-# Performance evaluation
-python scripts/tests/evaluate_social_media_ocr.py
-```
-
 ## 📚 Documentation
 
 Our documentation is organized into focused guides:
@@ -146,34 +68,6 @@ Our documentation is organized into focused guides:
 - **[💻 Development Guide](docs/development.md)** - Setup and development workflow
 - **[⚡ Performance Guide](docs/performance.md)** - Optimization and troubleshooting
 
-## 🎯 API Usage
-
-### Process Single Image
-```javascript
-// Upload and process an image
-const formData = new FormData();
-formData.append('file', imageFile);
-
-const response = await fetch('/api/ai/process-image', {
-  method: 'POST',
-  body: formData
-});
-
-const result = await response.json();
-// result.final_results.locations contains extracted locations
-```
-
-### Batch Processing
-```javascript
-// Process multiple images at once
-const formData = new FormData();
-files.forEach(file => formData.append('files', file));
-
-const response = await fetch('/api/ai/process-batch', {
-  method: 'POST',
-  body: formData
-});
-```
 
 ## 🧪 Testing & Validation
 
@@ -207,25 +101,6 @@ const response = await fetch('/api/ai/process-batch', {
 - **Before**: Isolated location extraction
 - **After**: Understands trails→parks, restaurants→districts
 
-## 🔧 Configuration
-
-```bash
-# Required
-OPENAI_API_KEY=your_openai_api_key
-
-# Optional (fallback to free Nominatim)
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Update documentation
-5. Submit a pull request
-
-See [Development Guide](docs/development.md) for detailed contribution guidelines.
 
 ## 📄 License
 
