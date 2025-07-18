@@ -1,19 +1,23 @@
-# LLMap - AI-Powered Multi-Modal Mapping Platform
+# LLMap - AI-Powered Location Extraction and Mapping
 
-LLMap is an intelligent mapping platform that transforms multi-modal information (text, images, links) into interactive, AI-enhanced geographical visualizations.
+LLMap transforms scattered location information from various sources (social media, travel photos, screenshots) into intelligent, interactive maps through AI-powered processing.
 
-## 🎯 Project Vision
-
-Transform scattered location information from various sources (social media, reviews, recommendations) into intelligent, shareable maps through AI agents.
 
 ## 🚀 Key Features
 
-- **Multi-modal Input Processing**: Images, text, links, screenshots
-- **Advanced OCR Processing**: Tesseract & PaddleOCR with intelligent preprocessing
-- **AI-Powered Location Extraction**: GPT-based geographical information parsing
-- **Interactive Visualization**: Dynamic maps with rich context
-- **Agent Integration**: MCP-compatible for AI workflow integration
-- **Shareable Outputs**: High-quality exports and embeddable components
+- **Multi-Modal Input Processing**: Upload images, screenshots, text, or links
+- **AI-Powered Location Extraction**: Intelligent recognition of places, businesses, and landmarks
+- **Advanced OCR Processing**: Dual-engine OCR with multi-language support
+- **Interactive Map Visualization**: Dynamic maps with rich location context
+- **Batch Processing**: Handle multiple images simultaneously
+- **Export & Sharing**: Generate GeoJSON, images, and shareable maps
+
+## 🎯 Use Cases
+
+- **Travel Planning**: Extract locations from travel blogs, social media posts, and itineraries
+- **Business Intelligence**: Analyze location mentions in reviews, posts, and screenshots
+- **Content Analysis**: Process images and screenshots for geographic data
+- **Map Creation**: Transform unstructured content into organized, interactive maps
 
 ### 🔍 OCR Capabilities
 
@@ -96,41 +100,133 @@ llmap/
 └── tests/             # Test suites
 ```
 
-## 🛠 Tech Stack
+## 🏗️ Technology Stack
 
-- **Frontend**: React/Next.js, Mapbox GL JS
-- **Backend**: Python FastAPI, OpenAI API
-- **Database**: PostgreSQL/SQLite
-- **Deployment**: Docker, Vercel/Railway
-
-## 📋 Development Phases
-
-### Phase 1: POC (2 weeks)
-- [ ] Multi-modal input processing
-- [ ] AI location extraction
-- [ ] Basic map visualization
-- [ ] Export functionality
-
-### Phase 2: Enhancement
-- [ ] Agent integration (MCP)
-- [ ] Collaborative features
-- [ ] Advanced filtering
-- [ ] Production deployment
+- **Backend**: FastAPI + OpenAI GPT-4 + Advanced OCR engines
+- **Frontend**: React/Next.js + Mapbox GL JS for interactive maps
+- **AI Processing**: GPT-4 for intelligent location understanding
+- **Geocoding**: Multiple services for accurate coordinate mapping
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Python 3.8+, Node.js 16+
+- OpenAI API key (required)
+- Google Maps API key (optional, fallback to Nominatim)
+
+### Setup
 ```bash
 # Backend
 cd backend
 pip install -r requirements.txt
+export OPENAI_API_KEY=your_openai_api_key
 python main.py
 
 # Frontend
 cd frontend
-npm install
-npm run dev
+npm install && npm run dev
 ```
 
-## 📖 Documentation
+### Test the System
+```bash
+# Validate implementation
+python scripts/test_enhanced_pipeline.py
 
-See `/docs` for detailed documentation and API references.
+# Performance evaluation
+python scripts/tests/evaluate_social_media_ocr.py
+```
+
+## 📚 Documentation
+
+Our documentation is organized into focused guides:
+
+- **[📖 Documentation Overview](docs/README.md)** - Start here
+- **[🏗️ Architecture Guide](docs/architecture.md)** - System design and components
+- **[🔌 API Reference](docs/api-reference.md)** - Complete API documentation
+- **[💻 Development Guide](docs/development.md)** - Setup and development workflow
+- **[⚡ Performance Guide](docs/performance.md)** - Optimization and troubleshooting
+
+## 🎯 API Usage
+
+### Process Single Image
+```javascript
+// Upload and process an image
+const formData = new FormData();
+formData.append('file', imageFile);
+
+const response = await fetch('/api/ai/process-image', {
+  method: 'POST',
+  body: formData
+});
+
+const result = await response.json();
+// result.final_results.locations contains extracted locations
+```
+
+### Batch Processing
+```javascript
+// Process multiple images at once
+const formData = new FormData();
+files.forEach(file => formData.append('files', file));
+
+const response = await fetch('/api/ai/process-batch', {
+  method: 'POST',
+  body: formData
+});
+```
+
+## 🧪 Testing & Validation
+
+### Ground Truth Evaluation
+- **8 test images** with expected results
+- **Precision/Recall metrics** for location extraction
+- **Content type accuracy** measurement
+- **Multi-language performance** testing
+
+### Test Coverage
+- Social media screenshots (Instagram, Facebook)
+- Travel itineraries (mixed Chinese/English)
+- Business listings and reviews
+- Map screenshots and navigation
+
+## 🎉 Key Advantages
+
+### 1. Context Awareness
+- **Before**: "visitor center" → generic location
+- **After**: "Olympic National Park visitor center" → specific facility with context
+
+### 2. Error Tolerance
+- **Before**: "Olympic natio" → no match
+- **After**: AI recognizes as "Olympic National Park"
+
+### 3. Multi-language Intelligence
+- **Before**: Chinese text often ignored
+- **After**: Natural mixed Chinese/English processing
+
+### 4. Relationship Understanding
+- **Before**: Isolated location extraction
+- **After**: Understands trails→parks, restaurants→districts
+
+## 🔧 Configuration
+
+```bash
+# Required
+OPENAI_API_KEY=your_openai_api_key
+
+# Optional (fallback to free Nominatim)
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Update documentation
+5. Submit a pull request
+
+See [Development Guide](docs/development.md) for detailed contribution guidelines.
+
+## 📄 License
+
+MIT License - see LICENSE file for details
