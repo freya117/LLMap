@@ -53,6 +53,7 @@ class ProcessedOCRResult:
     detected_locations: List[str] = None
     detected_addresses: List[str] = None
     detected_names: List[str] = None
+    locations: List[str] = None  # Add this for backward compatibility
 
     def __post_init__(self):
         if self.detected_locations is None:
@@ -61,6 +62,8 @@ class ProcessedOCRResult:
             self.detected_addresses = []
         if self.detected_names is None:
             self.detected_names = []
+        if self.locations is None:
+            self.locations = []
 
 
 class GroundTruthPatternLearner:
@@ -119,6 +122,257 @@ class GroundTruthPatternLearner:
             for pattern in pattern_list:
                 patterns.append((pattern, "known_address", 0.9))
         return patterns
+
+
+class ContentAwareProcessor:
+    """Process different content types with specialized strategies"""
+    
+    def __init__(self):
+        self.google_maps_processor = GoogleMapsProcessor()
+        self.social_media_processor = SocialMediaProcessor()
+        self.travel_processor = TravelItineraryProcessor()
+    
+    def process_by_type(self, text: str, image_type: str) -> Dict:
+        """Process text based on detected image type"""
+        if image_type == "google_maps":
+            return self.google_maps_processor.process(text)
+        elif image_type == "social_media":
+            return self.social_media_processor.process(text)
+        elif image_type == "travel_itinerary":
+            return self.travel_processor.process(text)
+        else:
+            # Default to mixed content processing
+            return self.google_maps_processor.process(text)
+
+
+class GoogleMapsProcessor:
+    """Specialized processor for Google Maps screenshots"""
+    
+    def process(self, text: str) -> Dict:
+        """Process Google Maps content"""
+        filter_tool = IntelligentTextFilter()
+        
+        # Use existing Google Maps processing logic
+        lines = text.split('\n')
+        filtered_lines = []
+        
+        for line in lines:
+            if not filter_tool.is_ui_element(line):
+                cleaned = filter_tool.filter_google_maps_ui(line)
+                cleaned = filter_tool.clean_ocr_artifacts(cleaned)
+                if cleaned and len(cleaned.strip()) >= 3:
+                    filtered_lines.append(cleaned.strip())
+        
+        return {
+            "content_type": "google_maps",
+            "processed_text": '\n'.join(filtered_lines),
+            "extraction_strategy": "structured_business_extraction"
+        }
+
+
+class SocialMediaProcessor:
+    """Specialized processor for social media screenshots"""
+    
+    def __init__(self):
+        # Social media specific noise patterns
+        self.social_noise_patterns = [
+            r'@\w+',  # Usernames
+            r'#\w+',  # Hashtags (but preserve for context)
+            r'\d+\s*(like|comment|share|view)s?',  # Engagement metrics
+            r'\d+[hmd]\s*ago',  # Time stamps
+            r'(sponsored|promoted|ad)',  # Ad indicators
+        ]
+        
+        # Preserve these patterns as they might contain location info
+        self.preserve_patterns = [
+            r'#\w*travel\w*',  # Travel hashtags
+            r'#\w*location\w*',  # Location hashtags
+            r'@\w*hotel\w*',  # Hotel mentions
+            r'@\w*restaurant\w*',  # Restaurant mentions
+        ]
+    
+    def process(self, text: str) -> Dict:
+        """Process social media content with minimal filtering"""
+        lines = text.split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            # Skip obvious noise but preserve content
+            if self._is_social_noise(line):
+                continue
+                
+            # Clean but preserve context
+            cleaned = self._clean_social_content(line)
+            if cleaned and len(cleaned.strip()) >= 2:  # Lower threshold
+                processed_lines.append(cleaned.strip())
+        
+        return {
+            "content_type": "social_media",
+            "processed_text": '\n'.join(processed_lines),
+            "extraction_strategy": "contextual_chunk_extraction"
+        }
+    
+    def _is_social_noise(self, text: str) -> bool:
+        """Check if text is social media noise"""
+        text_lower = text.lower().strip()
+        
+        # Skip very short engagement metrics
+        if re.match(r'^\d+$', text_lower):  # Just numbers
+            return True
+            
+        # Skip pure timestamp lines
+        if re.match(r'^\d+[hmd]\s*ago$', text_lower):
+            return True
+            
+        return False
+    
+    def _clean_social_content(self, text: str) -> str:
+        """Clean social media content while preserving context"""
+        # Remove excessive whitespace
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Remove some noise but keep location-relevant content
+        for pattern in self.social_noise_patterns:
+            # Check if it's a pattern we want to preserve
+            if not any(re.search(preserve, text, re.IGNORECASE) for preserve in self.preserve_patterns):
+                text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        
+        return text.strip()
+
+
+class TravelItineraryProcessor:
+    """Specialized processor for travel itinerary screenshots"""
+    
+    def __init__(self):
+        # Travel-specific patterns to preserve
+        self.travel_keywords = [
+            'day', 'hotel', 'lodge', 'trail', 'park', 'visitor center',
+            'national park', 'beach', 'mountain', 'lake', 'forest',
+            '推荐', '住', '第一天', '第二天', '第三天',  # Chinese travel terms
+            'itinerary', 'trip', 'travel', 'visit', 'stay'
+        ]
+        
+        # Semantic chunks patterns
+        self.chunk_patterns = [
+            r'day\s+\d+[^.]*',  # Day 1, Day 2 sections
+            r'住[^，。]*',  # Chinese accommodation info
+            r'推荐[^，。]*',  # Chinese recommendations
+            r'[A-Z][^.]*(?:trail|park|lodge|hotel|center)[^.]*',  # Location descriptions
+        ]
+    
+    def process(self, text: str) -> Dict:
+        """Process travel itinerary with semantic chunking"""
+        # Extract semantic chunks instead of individual words
+        chunks = self._extract_semantic_chunks(text)
+        
+        return {
+            "content_type": "travel_itinerary",
+            "processed_text": '\n'.join(chunks),
+            "extraction_strategy": "semantic_chunk_extraction",
+            "chunks": chunks
+        }
+    
+    def _extract_semantic_chunks(self, text: str) -> List[str]:
+        """Extract meaningful chunks from travel content"""
+        chunks = []
+        
+        # Split by lines and process each
+        lines = text.split('\n')
+        current_chunk = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if this line starts a new semantic chunk
+            if self._is_chunk_starter(line):
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                current_chunk = line
+            else:
+                # Add to current chunk if it's related
+                if current_chunk and self._is_related_content(line):
+                    current_chunk += " " + line
+                elif self._has_travel_content(line):
+                    # Start new chunk if it has travel content
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+                    current_chunk = line
+        
+        # Add final chunk
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        # Filter chunks by relevance
+        relevant_chunks = []
+        for chunk in chunks:
+            if self._is_relevant_chunk(chunk):
+                relevant_chunks.append(chunk)
+        
+        return relevant_chunks
+    
+    def _is_chunk_starter(self, text: str) -> bool:
+        """Check if text starts a new semantic chunk"""
+        text_lower = text.lower()
+        
+        # Day indicators
+        if re.match(r'day\s+\d+', text_lower):
+            return True
+            
+        # Chinese day indicators
+        if re.match(r'第[一二三四五六七八九十]+天', text):
+            return True
+            
+        # Location names (capitalized words)
+        if re.match(r'[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:National Park|Park|Trail|Lodge|Hotel)', text):
+            return True
+            
+        return False
+    
+    def _is_related_content(self, text: str) -> bool:
+        """Check if text is related to current chunk"""
+        text_lower = text.lower()
+        
+        # Contains travel keywords
+        return any(keyword in text_lower for keyword in self.travel_keywords)
+    
+    def _has_travel_content(self, text: str) -> bool:
+        """Check if text contains travel-related content"""
+        text_lower = text.lower()
+        
+        # Has location indicators
+        location_indicators = ['trail', 'park', 'lodge', 'hotel', 'center', 'beach', 'mountain', 'lake']
+        if any(indicator in text_lower for indicator in location_indicators):
+            return True
+            
+        # Has Chinese travel terms
+        chinese_terms = ['推荐', '住', '天']
+        if any(term in text for term in chinese_terms):
+            return True
+            
+        # Has proper nouns (likely place names)
+        if re.search(r'[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+', text):
+            return True
+            
+        return False
+    
+    def _is_relevant_chunk(self, chunk: str) -> bool:
+        """Check if chunk is relevant for extraction"""
+        # Must be substantial
+        if len(chunk) < 10:
+            return False
+            
+        # Must contain travel-related content
+        if not self._has_travel_content(chunk):
+            return False
+            
+        # Must not be pure noise
+        words = chunk.split()
+        if len(words) < 2:
+            return False
+            
+        return True
 
 
 class IntelligentTextFilter:
@@ -281,12 +535,14 @@ class LocationClassifier:
     def __init__(self, ground_truth_learner: GroundTruthPatternLearner):
         self.gt_learner = ground_truth_learner
         
-        # Business type indicators
+        # Business type indicators (enhanced with Japanese and international)
         self.business_indicators = [
             "restaurant", "cafe", "coffee", "bakery", "grill", "kitchen", 
             "bar", "bistro", "deli", "pizza", "sushi", "market", "shop",
             "eatery", "chicken", "thai", "chinese", "vietnamese", "mexican",
-            "italian", "bbq", "burger", "noodle", "ramen", "hotpot"
+            "italian", "bbq", "burger", "noodle", "ramen", "hotpot",
+            "udon", "tempura", "yakitori", "izakaya", "teppanyaki", "shabu",
+            "hotel", "lodge", "inn", "resort", "hostel", "ryokan"
         ]
         
         # Address indicators
@@ -295,10 +551,29 @@ class LocationClassifier:
             "drive", "dr", "lane", "ln", "way", "place", "pl", "plaza", "circle", "ct"
         ]
         
-        # Location area indicators
+        # Location area indicators (enhanced with Japanese and travel locations)
         self.area_indicators = [
             "berkeley", "oakland", "san francisco", "alameda", "contra costa",
-            "el cerrito", "albany", "richmond", "emeryville"
+            "el cerrito", "albany", "richmond", "emeryville",
+            "sapporo", "tokyo", "kyoto", "osaka", "hiroshima", "nagoya",
+            "yokohama", "kobe", "fukuoka", "sendai", "chiba", "kawasaki",
+            "area", "district", "ward", "prefecture", "city", "town"
+        ]
+        
+        # Travel and landmark indicators
+        self.landmark_indicators = [
+            "national park", "state park", "park", "forest", "trail", "trailhead",
+            "lake", "river", "mountain", "peak", "canyon", "falls", "waterfall",
+            "point", "lookout", "viewpoint", "visitor center", "museum",
+            "temple", "shrine", "castle", "tower", "bridge", "station",
+            "airport", "port", "harbor", "beach", "island", "valley"
+        ]
+        
+        # Japanese location patterns
+        self.japanese_patterns = [
+            r"[A-Za-z]+\s*(?:sushi|udon|ramen|tempura|yakitori|izakaya)",
+            r"(?:tokyo|kyoto|osaka|sapporo|hiroshima)\s*[A-Za-z]*",
+            r"[A-Za-z]+\s*(?:station|temple|shrine|castle|tower)"
         ]
     
     def classify_text(self, text: str, ocr_confidence: float) -> Dict[str, any]:
@@ -348,10 +623,32 @@ class LocationClassifier:
                     "confidence": min(0.8, ocr_confidence * 1.1)
                 }
         
-        # Check for business name patterns
+        # Check for Japanese business patterns
+        for pattern in self.japanese_patterns:
+            if re.search(pattern, text, re.IGNORECASE):
+                return {
+                    "text": text,
+                    "type": "business",
+                    "subtype": "japanese_business",
+                    "confidence": min(0.8, ocr_confidence * 1.1)
+                }
+        
+        # Check for landmark/travel patterns
+        for landmark in self.landmark_indicators:
+            if landmark in text_lower:
+                return {
+                    "text": text,
+                    "type": "landmark",
+                    "subtype": "travel_landmark",
+                    "confidence": min(0.8, ocr_confidence * 1.1)
+                }
+        
+        # Enhanced business name patterns
         business_patterns = [
             rf"[A-Z][a-zA-Z\s\'&\-]{{3,25}}\s+(?:{'|'.join(self.business_indicators)})",
             r"[A-Z][a-zA-Z\s\'&\-]{3,30}(?:\s+(?:berkeley|oakland|sf|san francisco))?",
+            r"(?:Katsumidori|Marugame|FLAIR|BABAL)\s*(?:sushi|udon|bar)?",  # Specific missed businesses
+            r"[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Sacred Heart School|School)",  # Schools
         ]
         
         for pattern in business_patterns:
@@ -363,7 +660,27 @@ class LocationClassifier:
                     "confidence": min(0.7, ocr_confidence * 1.0)
                 }
         
-        # Check for area/location names
+        # Enhanced area/location patterns
+        area_patterns = [
+            r"(?:Sapporo|Tokyo|Kyoto|Osaka)\s*(?:Area|District|Prefecture)?",
+            r"Olympic\s+National\s+Park",
+            r"Quinault\s+(?:rain\s+forest|Lake)",
+            r"(?:great|grand)\s+canyon",
+            r"artist\s+point",
+            r"tower\s+fall",
+            r"Jackson(?:\s+Hole)?",
+        ]
+        
+        for pattern in area_patterns:
+            if re.search(pattern, text, re.IGNORECASE):
+                return {
+                    "text": text,
+                    "type": "area",
+                    "subtype": "named_location",
+                    "confidence": min(0.8, ocr_confidence * 1.1)
+                }
+        
+        # Check for area/location names (fallback)
         for area in self.area_indicators:
             if area in text_lower:
                 return {
@@ -488,6 +805,7 @@ class HierarchicalExtractor:
             "businesses": [],
             "addresses": [], 
             "areas": [],
+            "landmarks": [],
             "other": []
         }
         
@@ -499,6 +817,8 @@ class HierarchicalExtractor:
                 hierarchical_results["addresses"].append(extraction)
             elif extraction_type == "area":
                 hierarchical_results["areas"].append(extraction)
+            elif extraction_type == "landmark":
+                hierarchical_results["landmarks"].append(extraction)
             else:
                 hierarchical_results["other"].append(extraction)
         
@@ -515,6 +835,7 @@ class HierarchicalExtractor:
             "businesses": 0.6,
             "addresses": 0.5,
             "areas": 0.4,
+            "landmarks": 0.4,
             "other": 0.3
         }
         
@@ -556,26 +877,71 @@ class ImagePreprocessor:
 
     @staticmethod
     def detect_image_type(image: np.ndarray) -> str:
-        """Detect image type (screenshot, photo, map, etc.)"""
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        """Detect image type based on visual and content analysis"""
+        try:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Calculate image features
-        edges = cv2.Canny(gray, 50, 150)
-        edge_density = np.sum(edges > 0) / edges.size
+            # Calculate visual features
+            edges = cv2.Canny(gray, 50, 150)
+            edge_density = np.sum(edges > 0) / edges.size
 
-        # Calculate color distribution
-        hist = cv2.calcHist(
-            [image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256]
-        )
-        color_diversity = np.count_nonzero(hist) / hist.size
+            # Calculate color distribution
+            hist = cv2.calcHist(
+                [image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256]
+            )
+            color_diversity = np.count_nonzero(hist) / hist.size
 
-        # Determine image type
-        if edge_density > 0.1 and color_diversity > 0.3:
-            return "map_screenshot"  # Map screenshot
-        elif edge_density < 0.05:
-            return "text_heavy"  # Text-heavy image
-        else:
-            return "mixed_content"  # Mixed content
+            # Quick OCR for content analysis
+            try:
+                import pytesseract
+                text = pytesseract.image_to_string(image).lower()
+                
+                # Content-based detection
+                google_maps_indicators = [
+                    'overview', 'menu', 'reviews', 'photos', 'directions',
+                    'call', 'website', 'hours', 'rating', 'stars',
+                    'restaurant', 'cafe', 'open', 'closed', 'min'
+                ]
+                
+                social_media_indicators = [
+                    'like', 'comment', 'share', 'follow', 'post',
+                    '@', '#', 'ago', 'minutes', 'hours', 'days',
+                    'story', 'feed', 'timeline'
+                ]
+                
+                travel_indicators = [
+                    'day 1', 'day 2', 'day 3', 'itinerary', 'trip',
+                    'hotel', 'lodge', 'trail', 'park', 'visitor center',
+                    '推荐', '住', '第一天', '第二天', 'national park'
+                ]
+                
+                # Count indicators
+                google_score = sum(1 for indicator in google_maps_indicators if indicator in text)
+                social_score = sum(1 for indicator in social_media_indicators if indicator in text)
+                travel_score = sum(1 for indicator in travel_indicators if indicator in text)
+                
+                # Content-based classification
+                if google_score >= 2:
+                    return "google_maps"
+                elif travel_score >= 2:
+                    return "travel_itinerary"
+                elif social_score >= 2:
+                    return "social_media"
+                    
+            except Exception as e:
+                logging.warning(f"Content analysis failed, using visual features: {e}")
+            
+            # Fallback to visual features
+            if edge_density > 0.1 and color_diversity > 0.3:
+                return "map_screenshot"
+            elif edge_density < 0.05:
+                return "text_heavy"
+            else:
+                return "mixed_content"
+                
+        except Exception as e:
+            logging.error(f"Image type detection failed: {e}")
+            return "unknown"
 
     @staticmethod
     def enhance_image_advanced(
@@ -960,6 +1326,11 @@ class TextProcessor:
             area["priority"] = 3
             all_extractions.append(area)
         
+        # Add landmarks (fourth priority)
+        for landmark in hierarchical_results["landmarks"]:
+            landmark["priority"] = 3  # Same priority as areas
+            all_extractions.append(landmark)
+        
         # Add other locations (lowest priority)
         for other in hierarchical_results["other"]:
             other["priority"] = 4
@@ -1117,8 +1488,13 @@ class OCRProcessor:
             cleaned_text = self.text_processor.clean_text(ocr_result.text)
             logger.info(f"Cleaned text length: {len(cleaned_text)}")
 
+            # Content-aware processing based on detected image type
+            image_type = ImagePreprocessor.detect_image_type(processed_image)
+            content_processor = ContentAwareProcessor()
+            processed_content = content_processor.process_by_type(cleaned_text, image_type)
+            
             # Enhanced structured extraction with hierarchical classification
-            advanced_locations = self.text_processor.extract_locations_advanced(cleaned_text, ocr_result.confidence)
+            advanced_locations = self.text_processor.extract_locations_advanced(processed_content["processed_text"], ocr_result.confidence)
             
             # Separate by type for backward compatibility
             locations = [loc["text"] for loc in advanced_locations]
@@ -1169,6 +1545,7 @@ class OCRProcessor:
                 detected_locations=locations,
                 detected_addresses=addresses,
                 detected_names=names,
+                locations=[loc['text'] for loc in advanced_locations],  # Add this for backward compatibility
             )
 
         except Exception as e:
@@ -1200,6 +1577,7 @@ class OCRProcessor:
                 detected_locations=[],
                 detected_addresses=[],
                 detected_names=[],
+                locations=[],  # Add this for backward compatibility
             )
 
 

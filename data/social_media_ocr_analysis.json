@@ -1,0 +1,136 @@
+{
+  "IMG_3198.PNG": {
+    "raw_text": "e =\n17:09 1 © E\n{ @ van a>\nBz) AE LL dah\n=) Ee)\nAcohFEWS rer A S/ESSiE)\n(LA cowie S te+A S/S by 1\n250110\n7 SE oponock xe u\nDane MAES FE\nmone AMSG FE ie\n| Pump1JIIO Pas Rocky EES\npone FOTLUE ES\n= sees ...",
+    "cleaned_text": "e = 17:09 1  E {  van a> Bz) AE LL dah =) Ee) AcohFEWS rer A S/ESSiE) (LA cowie S te+A S/S by 1 250110 7 SE oponock xe u Dane MAES FE mone AMSG FE ie | Pump1JIIO Pas Rocky EES pone FOTLUE ES = sees NB...",
+    "locations": [
+      "Pump2 J1"
+    ],
+    "confidence": 0.5088085106382979,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 1,
+        "businesses": 1,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0.6716272340425533
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3199.PNG": {
+    "raw_text": "17:09 4 he 4\n< ee Pa AUDI ( xt ) A\nitt sit) lwoly, c —_« I\nmM 28 SAPPORO AREA\nAM PRES ~IAt1 _ wanumteameran rr _|\neae a ~ the l\npaisa}\nabi hips * baer te BRBMOT EY PEARL AT\nao | = —\neo = i} i\nMSM BSS/...",
+    "cleaned_text": "17:09 4 he 4 < ee Pa AUDI ( xt ) A itt sit) lwoly, c _ I mM 28 SAPPORO AREA AM PRES IAt1 _ wanumteameran rr _| eae a  the l paisa} abi hips * baer te BRBMOT EY PEARL AT ao | =  eo = i} i MSM BSS/-FYI4...",
+    "locations": [],
+    "confidence": 0.4704615384615385,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 0,
+        "businesses": 0,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3200.PNG": {
+    "raw_text": "17:09 4 ee 4\nCB news 2\n3/7\ncamham tira ——— @ = | — —_—— -\n4 a >\nBe...\nMESEMLHSADYELAAM ios BER Aoesgy\n== al\nee < eer oe\" |\nBAF ML ATM RMA NAT = REMEBER RIY— ROD\n13 FLAIR BAR es 14 FLEA 15 FI FEE\ncamea...",
+    "cleaned_text": "17:09 4 ee 4 CB news 2 3/7 camham tira   = |  _ - 4 a > Be... MESEMLHSADYELAAM ios BER Aoesgy == al ee < eer oe\" | BAF ML ATM RMA NAT = REMEBER RIY ROD 13 FLAIR BAR es 14 FLEA 15 FI FEE cameaumenmeTui...",
+    "locations": [],
+    "confidence": 0.49383720930232555,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 0,
+        "businesses": 0,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3201.PNG": {
+    "raw_text": "17:09 4 ee 4\n( sexes 2\nA/7\ne260, za) seere | eamenron\nSapporo Chikagai Aurora Towa Hiragsshi Taxi Sapporo Sacred Heart School\nnt ame\nae bh eke a —?\n| at\nseaRosmmNRICSATM CROMBT OE {eR INS LOTR OF\nSe T...",
+    "cleaned_text": "17:09 4 ee 4 ( sexes 2 A/7 e260, za) seere | eamenron Sapporo Chikagai Aurora Towa Hiragsshi Taxi Sapporo Sacred Heart School nt ame ae bh eke a ? | at seaRosmmNRICSATM CROMBT OE {eR INS LOTR OF Se Te...",
+    "locations": [],
+    "confidence": 0.39770833333333333,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 0,
+        "businesses": 0,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3202.PNG": {
+    "raw_text": "17:10 ee 4\n\n< ,) Boe a\nBRAIZER RK -EBiia! ! !\n=hlSRRT, 2A-TRREGASEEEBR! DAIL\nSAREHEARG\n\n&& Katsumidori sushi tokyo, fall 7 RFE S/MRERAN\nSAB! TEMAS! FA lett 100 Siete\n= Marugame Udon, #SA+, MSHI, FFA\nT...",
+    "cleaned_text": "17:10 ee 4 < ,) Boe a BRAIZER RK -EBiia! ! ! =hlSRRT, 2A-TRREGASEEEBR! DAIL SAREHEARG  Katsumidori sushi tokyo, fall 7 RFE S/MRERAN SAB! TEMAS! FA lett 100 Siete = Marugame Udon, SA+, MSHI, FFA TEM. F...",
+    "locations": [],
+    "confidence": 0.5230894308943089,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 0,
+        "businesses": 0,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3203.PNG": {
+    "raw_text": "17:10 nie &\n\n< a WJGordon a@\nBAXARMIEG | HRH&JacksonzRaR\nOAS WADA PEAT RIERAD Zt, (ERDA\nHH DIMES TORE. ROAR KANAE\nFASE Mk RE PORE AAA BA Ss A\n5S, ZPR-AMNHABRA. AM, BAUNARA\nMB, MARA Jackson/)4A, ECERHM...",
+    "cleaned_text": "17:10 nie  < a WJGordon a BAXARMIEG | HRHJacksonzRaR OAS WADA PEAT RIERAD Zt, (ERDA HH DIMES TORE. ROAR KANAE FASE Mk RE PORE AAA BA Ss A SS, ZPR-AMNHABRA. AM, BAUNARA MB, MARA Jackson/)4A, ECERHMAR 6...",
+    "locations": [
+      "17:10 nie < a WJGordon a BAXARMIEG"
+    ],
+    "confidence": 0.4347863247863248,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 1,
+        "businesses": 0,
+        "addresses": 1,
+        "areas": 0,
+        "avg_confidence": 0.5787005982905985
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3204.PNG": {
+    "raw_text": "17:10 Te 4\n\n< 2) Au e868 0 axz PD\nSOARES | day4 BE E/\\BABAL\nBAR! : RAWEN-AAL/|\n3 &tips a\n@MAtks great canyon: SIRBALRT! artist point\nRY TSAR We (p2)\n@ SiS87 tower fall: HAFEHKERSUMNRA\n(p3) SHRUB R RAW...",
+    "cleaned_text": "17:10 Te 4 < 2) Au e868 0 axz PD SOARES | day4 BE E/\\BABAL BAR! : RAWEN-AAL/| 3 tips a MAtks great canyon: SIRBALRT! artist point RY TSAR We (p2)  SiS87 tower fall: HAFEHKERSUMNRA (p3) SHRUB R RAW ao ...",
+    "locations": [
+      "day4 BE E/\\BABAL BAR! : RAWEN-AAL/"
+    ],
+    "confidence": 0.46950000000000003,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 1,
+        "businesses": 1,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0.6197400000000001
+      },
+      "content_type": "unknown"
+    }
+  },
+  "IMG_3205.PNG": {
+    "raw_text": "17:12 Toe 4\n4 £ Balabalabella a\nFAA AG 5 ihisia i Z ik\nTi AS ARAH=ABRARRAKESMIR:\n¢ Day 1 Olympic national park\nINGEST =:\nQuinault rain forest trailhead, EFRYKzZI)| Lake Quinault\nG3 Tree of liteGJKalal...",
+    "cleaned_text": "17:12 Toe 4 4  Balabalabella a FAA AG 5 ihisia i Z ik Ti AS ARAH=ABRARRAKESMIR:  Day 1 Olympic national park INGEST =: Quinault rain forest trailhead, EFRYKzZI)| Lake Quinault G3 Tree of liteGJKalaloc...",
+    "locations": [],
+    "confidence": 0.6975510204081633,
+    "structured_data": {
+      "extraction_stats": {
+        "total_extractions": 0,
+        "businesses": 0,
+        "addresses": 0,
+        "areas": 0,
+        "avg_confidence": 0
+      },
+      "content_type": "unknown"
+    }
+  }
+}

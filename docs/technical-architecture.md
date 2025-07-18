@@ -1,16 +1,36 @@
 # LLMap Technical Architecture
 
-## Core Technology Stack
+## Strategic Approach: Enhanced OCR + AI Pipeline
 
-### 🧠 Data Processing & AI
-- **NLU + Information Extraction**: OpenAI GPT-4/5 for named entity recognition (locations, prices, categories)
-- **Multi-modal Processing**: OCR (PaddleOCR, Tesseract.js) + Vision models
-- **Geocoding**: Mapbox/Google Geocoding API, Nominatim for address → coordinates
-- **Memory System**: Vector embeddings with FAISS/Chroma for user preferences
+### 🎯 Core Philosophy
+**OCR Phase**: Extract all meaningful text with minimal filtering, focus on preservation over precision
+**AI Phase**: Let AI handle semantic understanding, geocoding, and structured data extraction
+
+### 🧠 Data Processing & AI Pipeline
+
+#### OCR Layer (Preservation Focus)
+- **Multi-Engine OCR**: PaddleOCR (Chinese), Tesseract (English), auto-selection
+- **Context Preservation**: Maintain spatial/contextual relationships in text
+- **Minimal Filtering**: Extract all meaningful text, avoid aggressive filtering
+- **Structured Chunks**: Output rich context chunks rather than individual locations
+- **Multi-language Support**: Handle mixed Chinese/English content naturally
+
+#### AI Layer (Intelligence Focus)
+- **Semantic Understanding**: GPT-4/Claude for context-aware location extraction
+- **Fuzzy Matching**: AI handles OCR errors and text variations
+- **Context Awareness**: "Olympic National Park visitor center" vs generic "visitor center"
+- **Relationship Understanding**: Links trails to parks, lodges to areas
+- **Multi-language Processing**: Natural handling of Chinese place names
+
+#### Geocoding Strategy (AI-Powered)
+- **Context-Aware Geocoding**: AI provides geographic context before geocoding
+- **Fuzzy Location Matching**: Handle OCR errors in place names
+- **Semantic Enrichment**: "住Gateway Inn" → "Gateway Inn accommodation"
+- **Relationship Mapping**: Connect related locations (trail → park → region)
 
 ### 🗺️ Map Rendering & Interaction
 - **Frontend**: Mapbox GL JS for WebGL-powered high-performance rendering
-- **Data Format**: GeoJSON standard for unified geographic data representation
+- **Data Format**: GeoJSON with AI-enriched semantic annotations
 - **State Management**: Zustand for React state management
 - **Export**: Canvas/SVG → high-resolution images with embedded metadata
 
@@ -29,36 +49,44 @@
 
 ## Implementation Phases
 
-### Phase 1: POC (Current - 2 weeks)
-**Goal**: Upload → AI extraction → Map visualization → Export
+### Phase 1: Enhanced OCR + AI Pipeline (Current - 2 weeks)
+**Goal**: Rich OCR → AI Processing → Structured Extraction → Map visualization
 
 **Tech Stack**:
+- OCR: PaddleOCR + Tesseract with context preservation
+- AI: OpenAI GPT-4 for semantic understanding and geocoding
+- Backend: FastAPI with structured chunk processing
 - Frontend: React + Next.js + Mapbox GL JS
-- Backend: FastAPI + OpenAI API + PaddleOCR
-- Geocoding: Google Maps API / Nominatim
 
 **Deliverables**:
-- Multi-modal file upload (images, text)
-- AI-powered location extraction
-- Interactive map with clickable markers
-- GeoJSON export functionality
+- Context-preserving OCR system
+- AI-powered semantic location extraction
+- Intelligent geocoding with context awareness
+- Interactive map with AI-enriched markers
+- Structured export functionality
 
 ### Phase 2: Enhancement
 - Agent integration (MCP server)
 - Memory system with vector search
 - Collaborative features
-- Advanced filtering and recommendations
+- Advanced AI-powered filtering and recommendations
 
 ## Data Flow Architecture
 
 ```
 Input (Image/Text/Link) 
     ↓
-OCR + NLU Processing (GPT-4)
+Enhanced OCR (Context Preservation)
     ↓
-Location Extraction + Geocoding
+Structured Text Chunks with Spatial Context
     ↓
-GeoJSON Generation
+AI Semantic Processing (GPT-4/Claude)
+    ↓
+Structured Location Data + Context
+    ↓
+AI-Powered Geocoding with Context
+    ↓
+Enriched GeoJSON Generation
     ↓
 Map Visualization (Mapbox GL)
     ↓

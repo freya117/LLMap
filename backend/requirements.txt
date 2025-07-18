@@ -14,3 +14,7 @@ jieba>=0.42.0
 numpy
 scikit-image
 nltk>=3.8.0
+
+# Enhanced OCR + AI Pipeline dependencies
+paddleocr>=2.7.0
+paddlepaddle>=2.5.0

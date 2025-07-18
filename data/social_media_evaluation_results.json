@@ -1,0 +1,392 @@
+{
+  "evaluation_date": "2025-01-18",
+  "overall_stats": {
+    "total_images": 8,
+    "avg_ocr_confidence": 0.49946779597803653,
+    "location_extraction": {
+      "precision": 0.6666666666666666,
+      "recall": 0.13333333333333333,
+      "f1_score": 0.2222222222222222,
+      "total_expected": 15,
+      "total_found": 2,
+      "total_extracted": 3
+    },
+    "text_content_accuracy": 1.0,
+    "content_type_breakdown": {
+      "social_media": {
+        "count": 6,
+        "avg_confidence": 0,
+        "confidences": [
+          0.5088085106382979,
+          0.4704615384615385,
+          0.49383720930232555,
+          0.39770833333333333,
+          0.5230894308943089,
+          0.4347863247863248
+        ]
+      },
+      "travel_itinerary": {
+        "count": 2,
+        "avg_confidence": 0,
+        "confidences": [
+          0.46950000000000003,
+          0.6975510204081633
+        ]
+      }
+    }
+  },
+  "individual_results": [
+    {
+      "image": "IMG_3198.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "medium",
+      "ocr_confidence": 0.5088085106382979,
+      "location_extraction": {
+        "total_expected": 1,
+        "total_extracted": 1,
+        "correctly_identified": 1,
+        "false_positives": 0,
+        "missed_locations": [],
+        "found_locations": [
+          {
+            "expected": "Pump2 J1",
+            "actual": "Pump2 J1",
+            "similarity": 1.0,
+            "type": "business"
+          }
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "text_content": {
+        "total_expected": 2,
+        "found_count": 2,
+        "found_items": [
+          "Pump",
+          "17:09"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 1302,
+      "cleaned_text_length": 1273,
+      "success": true
+    },
+    {
+      "image": "IMG_3199.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "high",
+      "ocr_confidence": 0.4704615384615385,
+      "location_extraction": {
+        "total_expected": 1,
+        "total_extracted": 0,
+        "correctly_identified": 0,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "SAPPORO AREA",
+            "type": "area",
+            "confidence_threshold": 0.5,
+            "context": "Geographic area in Japan"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 3,
+        "found_count": 3,
+        "found_items": [
+          "SAPPORO",
+          "AREA",
+          "17:09"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 380,
+      "cleaned_text_length": 372,
+      "success": true
+    },
+    {
+      "image": "IMG_3200.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "high",
+      "ocr_confidence": 0.49383720930232555,
+      "location_extraction": {
+        "total_expected": 1,
+        "total_extracted": 0,
+        "correctly_identified": 0,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "FLAIR BAR",
+            "type": "business",
+            "confidence_threshold": 0.5,
+            "context": "Bar/restaurant name"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 2,
+        "found_count": 2,
+        "found_items": [
+          "FLAIR BAR",
+          "17:09"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 557,
+      "cleaned_text_length": 541,
+      "success": true
+    },
+    {
+      "image": "IMG_3201.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "medium",
+      "ocr_confidence": 0.39770833333333333,
+      "location_extraction": {
+        "total_expected": 2,
+        "total_extracted": 0,
+        "correctly_identified": 0,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "Sapporo",
+            "type": "city",
+            "confidence_threshold": 0.7,
+            "context": "Major Japanese city"
+          },
+          {
+            "text": "Sapporo Sacred Heart School",
+            "type": "business",
+            "confidence_threshold": 0.6,
+            "context": "Educational institution"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 3,
+        "found_count": 3,
+        "found_items": [
+          "Sapporo",
+          "Sacred Heart School",
+          "17:09"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 551,
+      "cleaned_text_length": 545,
+      "success": true
+    },
+    {
+      "image": "IMG_3202.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "medium",
+      "ocr_confidence": 0.5230894308943089,
+      "location_extraction": {
+        "total_expected": 2,
+        "total_extracted": 0,
+        "correctly_identified": 0,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "Katsumidori sushi tokyo",
+            "type": "business",
+            "confidence_threshold": 0.6,
+            "context": "Sushi restaurant in Tokyo"
+          },
+          {
+            "text": "Marugame Udon",
+            "type": "business",
+            "confidence_threshold": 0.7,
+            "context": "Popular udon chain restaurant"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 5,
+        "found_count": 5,
+        "found_items": [
+          "Katsumidori",
+          "sushi",
+          "tokyo",
+          "Marugame Udon",
+          "17:10"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 903,
+      "cleaned_text_length": 880,
+      "success": true
+    },
+    {
+      "image": "IMG_3203.PNG",
+      "expected_content_type": "social_media",
+      "expected_difficulty": "high",
+      "ocr_confidence": 0.4347863247863248,
+      "location_extraction": {
+        "total_expected": 1,
+        "total_extracted": 1,
+        "correctly_identified": 0,
+        "false_positives": 1,
+        "missed_locations": [
+          {
+            "text": "Jackson",
+            "type": "area",
+            "confidence_threshold": 0.5,
+            "context": "Place name mentioned multiple times"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 2,
+        "found_count": 2,
+        "found_items": [
+          "Jackson",
+          "17:10"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 820,
+      "cleaned_text_length": 804,
+      "success": true
+    },
+    {
+      "image": "IMG_3204.PNG",
+      "expected_content_type": "travel_itinerary",
+      "expected_difficulty": "medium",
+      "ocr_confidence": 0.46950000000000003,
+      "location_extraction": {
+        "total_expected": 4,
+        "total_extracted": 1,
+        "correctly_identified": 1,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "great canyon",
+            "type": "landmark",
+            "confidence_threshold": 0.5,
+            "context": "Natural landmark"
+          },
+          {
+            "text": "artist point",
+            "type": "landmark",
+            "confidence_threshold": 0.6,
+            "context": "Scenic viewpoint"
+          },
+          {
+            "text": "tower fall",
+            "type": "landmark",
+            "confidence_threshold": 0.6,
+            "context": "Waterfall landmark"
+          }
+        ],
+        "found_locations": [
+          {
+            "expected": "BABAL BAR",
+            "actual": "day4 BE E/\\BABAL BAR! : RAWEN-AAL/",
+            "similarity": 1.0,
+            "type": "business"
+          }
+        ],
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1_score": 0.4
+      },
+      "text_content": {
+        "total_expected": 6,
+        "found_count": 6,
+        "found_items": [
+          "day4",
+          "BABAL BAR",
+          "great canyon",
+          "artist point",
+          "tower fall",
+          "17:10"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 697,
+      "cleaned_text_length": 689,
+      "success": true
+    },
+    {
+      "image": "IMG_3205.PNG",
+      "expected_content_type": "travel_itinerary",
+      "expected_difficulty": "medium",
+      "ocr_confidence": 0.6975510204081633,
+      "location_extraction": {
+        "total_expected": 3,
+        "total_extracted": 0,
+        "correctly_identified": 0,
+        "false_positives": 0,
+        "missed_locations": [
+          {
+            "text": "Olympic national park",
+            "type": "park",
+            "confidence_threshold": 0.8,
+            "context": "Major national park in Washington State"
+          },
+          {
+            "text": "Quinault rain forest",
+            "type": "landmark",
+            "confidence_threshold": 0.7,
+            "context": "Rainforest area within Olympic National Park"
+          },
+          {
+            "text": "Lake Quinault",
+            "type": "landmark",
+            "confidence_threshold": 0.7,
+            "context": "Lake in Olympic National Park"
+          }
+        ],
+        "found_locations": [],
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "text_content": {
+        "total_expected": 6,
+        "found_count": 6,
+        "found_items": [
+          "Day 1",
+          "Olympic national park",
+          "Quinault",
+          "rain forest",
+          "Lake Quinault",
+          "17:12"
+        ],
+        "missed_items": [],
+        "accuracy": 1.0
+      },
+      "raw_text_length": 1024,
+      "cleaned_text_length": 1007,
+      "success": true
+    }
+  ]
+}

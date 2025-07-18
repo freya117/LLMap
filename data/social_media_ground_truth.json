@@ -1,0 +1,237 @@
+{
+  "description": "Ground truth data for social media OCR evaluation",
+  "created_date": "2025-01-18",
+  "images": {
+    "IMG_3198.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "Pump2 J1",
+          "type": "business",
+          "confidence_threshold": 0.6,
+          "context": "Japanese restaurant/business name"
+        }
+      ],
+      "expected_text_contains": [
+        "Pump",
+        "17:09"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "medium",
+      "notes": "Social media screenshot with Japanese text and business names"
+    },
+    "IMG_3199.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "SAPPORO AREA",
+          "type": "area",
+          "confidence_threshold": 0.5,
+          "context": "Geographic area in Japan"
+        }
+      ],
+      "expected_text_contains": [
+        "SAPPORO",
+        "AREA",
+        "17:09"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "high",
+      "notes": "Contains area name but OCR quality is poor"
+    },
+    "IMG_3200.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "FLAIR BAR",
+          "type": "business",
+          "confidence_threshold": 0.5,
+          "context": "Bar/restaurant name"
+        }
+      ],
+      "expected_text_contains": [
+        "FLAIR BAR",
+        "17:09"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "high",
+      "notes": "Social media with business listings"
+    },
+    "IMG_3201.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "Sapporo",
+          "type": "city",
+          "confidence_threshold": 0.7,
+          "context": "Major Japanese city"
+        },
+        {
+          "text": "Sapporo Sacred Heart School",
+          "type": "business",
+          "confidence_threshold": 0.6,
+          "context": "Educational institution"
+        }
+      ],
+      "expected_text_contains": [
+        "Sapporo",
+        "Sacred Heart School",
+        "17:09"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "medium",
+      "notes": "Contains clear location references"
+    },
+    "IMG_3202.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "Katsumidori sushi tokyo",
+          "type": "business",
+          "confidence_threshold": 0.6,
+          "context": "Sushi restaurant in Tokyo"
+        },
+        {
+          "text": "Marugame Udon",
+          "type": "business",
+          "confidence_threshold": 0.7,
+          "context": "Popular udon chain restaurant"
+        }
+      ],
+      "expected_text_contains": [
+        "Katsumidori",
+        "sushi",
+        "tokyo",
+        "Marugame Udon",
+        "17:10"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "medium",
+      "notes": "Restaurant recommendations with clear business names"
+    },
+    "IMG_3203.PNG": {
+      "content_type": "social_media",
+      "expected_locations": [
+        {
+          "text": "Jackson",
+          "type": "area",
+          "confidence_threshold": 0.5,
+          "context": "Place name mentioned multiple times"
+        }
+      ],
+      "expected_text_contains": [
+        "Jackson",
+        "17:10"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "high",
+      "notes": "Poor OCR quality but contains location references"
+    },
+    "IMG_3204.PNG": {
+      "content_type": "travel_itinerary",
+      "expected_locations": [
+        {
+          "text": "BABAL BAR",
+          "type": "business",
+          "confidence_threshold": 0.6,
+          "context": "Restaurant/bar name in travel itinerary"
+        },
+        {
+          "text": "great canyon",
+          "type": "landmark",
+          "confidence_threshold": 0.5,
+          "context": "Natural landmark"
+        },
+        {
+          "text": "artist point",
+          "type": "landmark",
+          "confidence_threshold": 0.6,
+          "context": "Scenic viewpoint"
+        },
+        {
+          "text": "tower fall",
+          "type": "landmark",
+          "confidence_threshold": 0.6,
+          "context": "Waterfall landmark"
+        }
+      ],
+      "expected_text_contains": [
+        "day4",
+        "BABAL BAR",
+        "great canyon",
+        "artist point",
+        "tower fall",
+        "17:10"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "medium",
+      "notes": "Travel itinerary with multiple landmarks and attractions"
+    },
+    "IMG_3205.PNG": {
+      "content_type": "travel_itinerary",
+      "expected_locations": [
+        {
+          "text": "Olympic national park",
+          "type": "park",
+          "confidence_threshold": 0.8,
+          "context": "Major national park in Washington State"
+        },
+        {
+          "text": "Quinault rain forest",
+          "type": "landmark",
+          "confidence_threshold": 0.7,
+          "context": "Rainforest area within Olympic National Park"
+        },
+        {
+          "text": "Lake Quinault",
+          "type": "landmark",
+          "confidence_threshold": 0.7,
+          "context": "Lake in Olympic National Park"
+        }
+      ],
+      "expected_text_contains": [
+        "Day 1",
+        "Olympic national park",
+        "Quinault",
+        "rain forest",
+        "Lake Quinault",
+        "17:12"
+      ],
+      "language": "mixed_japanese_english",
+      "ocr_difficulty": "medium",
+      "notes": "Travel itinerary for Olympic National Park with clear landmarks"
+    }
+  },
+  "evaluation_metrics": {
+    "location_extraction_accuracy": {
+      "description": "Percentage of expected locations correctly identified",
+      "calculation": "correctly_identified_locations / total_expected_locations"
+    },
+    "precision": {
+      "description": "Percentage of extracted locations that are correct",
+      "calculation": "correct_extractions / total_extractions"
+    },
+    "recall": {
+      "description": "Percentage of expected locations that were found",
+      "calculation": "found_expected_locations / total_expected_locations"
+    },
+    "content_type_accuracy": {
+      "description": "Percentage of images with correctly identified content type",
+      "calculation": "correct_content_types / total_images"
+    }
+  },
+  "current_performance_issues": [
+    "Poor OCR quality for mixed Japanese/English text",
+    "Location extraction missing obvious place names like 'Sapporo', 'Olympic national park'",
+    "Business name extraction inconsistent",
+    "Content type detection not being used effectively",
+    "Need better preprocessing for social media screenshots"
+  ],
+  "improvement_recommendations": [
+    "Implement better Japanese text preprocessing",
+    "Add specific patterns for travel/tourism locations",
+    "Improve business name recognition patterns",
+    "Enhance content-aware filtering based on detected type",
+    "Add confidence boosting for well-known locations"
+  ]
+}

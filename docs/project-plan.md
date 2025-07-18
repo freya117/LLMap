@@ -1,47 +1,48 @@
-# LLMap Development Plan
+# LLMap Development Plan - Enhanced OCR + AI Pipeline
 
-## Phase 1: POC Development (2 weeks)
+## Phase 1: Enhanced OCR + AI Pipeline Implementation (2 weeks)
 
-### Week 1: Core Infrastructure
+### Week 1: Context-Preserving OCR Foundation
 - [x] Project structure setup
-- [ ] Backend API foundation (FastAPI)
-- [ ] Frontend setup (React/Next.js)
-- [ ] Basic file upload functionality
-- [ ] OCR integration (Tesseract.js/PaddleOCR)
+- [ ] Enhanced OCR processor (context preservation)
+- [ ] Content-type detection system
+- [ ] Structured chunk output system
+- [ ] Multi-language OCR coordination
 
-### Week 2: AI Integration & Visualization
-- [ ] GPT location extraction
-- [ ] Geocoding service integration
-- [ ] Map visualization (Mapbox GL JS)
-- [ ] Basic export functionality
+### Week 2: AI Semantic Processing & Integration
+- [ ] AI semantic processor (GPT-4/Claude integration)
+- [ ] Context-aware location extraction
+- [ ] AI-powered geocoding service
+- [ ] Relationship mapping system
+- [ ] Enhanced map visualization with AI-enriched data
 
-## Task Division
+## Strategic Task Division
 
-### Member A (Frontend Focus)
+### Member A (Frontend + AI Integration Focus)
 **Week 1:**
-- [ ] Set up Next.js project structure
-- [ ] Create file upload UI component
-- [ ] Implement drag-and-drop interface
-- [ ] Set up Mapbox GL JS integration
+- [ ] Enhanced file upload UI with content-type detection
+- [ ] Context-preserving image preprocessing
+- [ ] Structured chunk display components
+- [ ] Multi-language content handling UI
 
 **Week 2:**
-- [ ] Build interactive map component
-- [ ] Create location marker system
-- [ ] Implement export functionality
-- [ ] UI/UX polish and responsive design
+- [ ] AI processing status indicators
+- [ ] Enhanced map visualization with semantic data
+- [ ] Relationship visualization (trails→parks, etc.)
+- [ ] AI-enriched export functionality
 
-### Member B (AI & Backend Focus)
+### Member B (Enhanced OCR + AI Backend Focus)
 **Week 1:**
-- [ ] Set up FastAPI backend
-- [ ] Implement file upload endpoints
-- [ ] Integrate OCR processing
-- [ ] Design database schema
+- [ ] Context-preserving OCR processor
+- [ ] Content-type detection algorithms
+- [ ] Structured chunking system
+- [ ] Multi-engine OCR coordination
 
 **Week 2:**
-- [ ] GPT prompt engineering for location extraction
-- [ ] Geocoding API integration
-- [ ] GeoJSON generation logic
-- [ ] API documentation and testing
+- [ ] AI semantic processing integration (GPT-4/Claude)
+- [ ] Context-aware geocoding service
+- [ ] Relationship mapping algorithms
+- [ ] Enhanced API endpoints for AI pipeline
 
 ## Success Metrics
 
