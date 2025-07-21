@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FileUpload from '../components/FileUpload';
 import MapView from '../components/MapView';
 import OCRPanel from '../components/OCRPanel';
+import ResultsPanel from '../components/ResultsPanel';
 import { googleMapsData } from '../utils/sampleData';
 
 export default function Home() {
@@ -12,16 +13,19 @@ export default function Home() {
   const [processingStatus, setProcessingStatus] = useState('');
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'ocr'
   const [ocrTestResults, setOcrTestResults] = useState(null);
+  const [showResultsPanel, setShowResultsPanel] = useState(false);
 
   const handleFilesUploaded = (files) => {
     setUploadedFiles(files);
     console.log('Files uploaded:', files);
     setProcessingMode('upload');
+    setShowResultsPanel(false); // Hide results panel when new files are uploaded
   };
 
   const handleOCRError = (error) => {
     console.error('OCR processing failed:', error);
     setProcessingStatus(`OCR processing failed: ${error}`);
+    setShowResultsPanel(false);
   };
 
   const handleOCRComplete = async (results) => {
@@ -40,6 +44,9 @@ export default function Home() {
         groundTruthComparison: groundTruthComparison
       });
       
+      // Show the results panel
+      setShowResultsPanel(true);
+      
       // Log detailed performance metrics
       if (groundTruthComparison) {
         console.log('🎯 OCR Performance Analysis:');
@@ -50,6 +57,9 @@ export default function Home() {
         console.log(`❌ False Positives: ${groundTruthComparison.false_positives.length}`);
         console.log(`⚠️ Missing: ${groundTruthComparison.missing.length}`);
       }
+    } else {
+      // Simple results, show basic results panel
+      setShowResultsPanel(true);
     }
     
     setProcessingStatus('Performing geocoding...');
@@ -318,7 +328,9 @@ export default function Home() {
     setProcessingMode('test');
     setExtractedLocations(googleMapsData);
     setOcrResults(null);
+    setOcrTestResults(null);
     setProcessingStatus('');
+    setShowResultsPanel(false); // Hide results panel when loading test data
   };
 
   return (
@@ -402,7 +414,10 @@ export default function Home() {
                   Our AI will extract and map the locations for you.
                 </p>
                 
-                <FileUpload onFilesUploaded={handleFilesUploaded} />
+                <FileUpload 
+                  onFilesUploaded={handleFilesUploaded}
+                  onOCRComplete={handleOCRComplete}
+                />
 
                 {/* Processing Status */}
                 {processingStatus && (
@@ -472,426 +487,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* OCR Test Results Display */}
-        {ocrTestResults && (
-          <div className="mt-8 space-y-6">
-            {/* Raw OCR Results */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  OCR Processing Results
-                </h3>
-              
-                {/* Processing Statistics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {ocrTestResults.processing_stats?.successful_files || 0}
-                    </div>
-                    <div className="text-sm text-blue-800">Files Processed</div>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {ocrTestResults.aggregated_data?.summary?.total_unique_locations || 
-                       ocrTestResults.aggregated_data?.locations?.length || 0}
-                    </div>
-                    <div className="text-sm text-green-800">Locations Found</div>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {ocrTestResults.aggregated_data?.summary?.average_confidence ? 
-                       (ocrTestResults.aggregated_data.summary.average_confidence * 100).toFixed(1) : 
-                       ocrTestResults.processing_stats?.average_confidence ? 
-                       (ocrTestResults.processing_stats.average_confidence * 100).toFixed(1) : 0}%
-                    </div>
-                    <div className="text-sm text-purple-800">Avg Confidence</div>
-                  </div>
-                  <div className="bg-orange-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {ocrTestResults.processing_stats?.total_files || 0}
-                    </div>
-                    <div className="text-sm text-orange-800">Total Files</div>
-                  </div>
-                </div>
-
-                {/* Location Types Breakdown */}
-                {ocrTestResults.aggregated_data?.summary?.location_types && (
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium text-gray-900 mb-3">Location Types</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm text-gray-700">Businesses</span>
-                        <span className="font-medium text-gray-900">
-                          {ocrTestResults.aggregated_data.summary.location_types.businesses || 0}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm text-gray-700">Addresses</span>
-                        <span className="font-medium text-gray-900">
-                          {ocrTestResults.aggregated_data.summary.location_types.addresses || 0}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm text-gray-700">Locations</span>
-                        <span className="font-medium text-gray-900">
-                          {ocrTestResults.aggregated_data.summary.location_types.locations || 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Extracted Locations List */}
-                {ocrTestResults.aggregated_data?.locations && ocrTestResults.aggregated_data.locations.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium text-gray-900 mb-3">Extracted Locations</h4>
-                    <div className="max-h-64 overflow-y-auto space-y-2">
-                      {ocrTestResults.aggregated_data.locations.map((location, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{location.name}</div>
-                            <div className="text-sm text-gray-500">
-                              Type: {location.type} | Source: {location.source}
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {((location.confidence || 0) * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Individual File Results */}
-                {ocrTestResults.results && ocrTestResults.results.length > 0 && (
-                  <div>
-                    <h4 className="text-md font-medium text-gray-900 mb-3">Individual File Results</h4>
-                    <div className="space-y-4">
-                      {ocrTestResults.results.map((result, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-medium text-gray-900">
-                              {result.processing_metadata?.file_info?.filename || `File ${index + 1}`}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {result.success ? (
-                                <span className="text-green-600 text-sm">✅ Success</span>
-                              ) : (
-                                <span className="text-red-600 text-sm">❌ Failed</span>
-                              )}
-                              {result.confidence !== undefined && (
-                                <span className="text-sm text-gray-600">
-                                  {(result.confidence * 100).toFixed(1)}%
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Show extracted locations count */}
-                          {result.success && result.extracted_info && (
-                            <div className="mb-2 text-sm text-gray-600">
-                              Extracted: {result.extracted_info.locations?.length || 0} locations, {' '}
-                              {result.extracted_info.addresses?.length || 0} addresses, {' '}
-                              {result.extracted_info.business_names?.length || 0} businesses
-                            </div>
-                          )}
-                          
-                          {result.success && result.cleaned_text && (
-                            <div className="mt-2">
-                              <div className="text-sm text-gray-700 mb-1">Extracted Text:</div>
-                              <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-20 overflow-y-auto">
-                                {result.cleaned_text.substring(0, 200)}
-                                {result.cleaned_text.length > 200 ? '...' : ''}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {result.error && (
-                            <div className="mt-2 text-sm text-red-600">
-                              Error: {result.error}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Standardized Results for AI Pipeline */}
-            {ocrTestResults.standardized && (
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Standardized Results for AI Pipeline
-                  </h3>
-                  
-                  {/* Metadata Summary */}
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="text-md font-medium text-gray-900 mb-3">Processing Metadata</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Timestamp:</span>
-                        <div className="font-mono text-xs">
-                          {new Date(ocrTestResults.standardized.metadata.processing_timestamp).toLocaleString()}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Success Rate:</span>
-                        <div className="font-medium">
-                          {ocrTestResults.standardized.metadata.successful_files}/{ocrTestResults.standardized.metadata.total_files_processed}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Avg Confidence:</span>
-                        <div className="font-medium">
-                          {(ocrTestResults.standardized.metadata.average_confidence * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Engine:</span>
-                        <div className="font-medium">{ocrTestResults.standardized.metadata.processing_engine}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Standardized Locations */}
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium text-gray-900 mb-3">
-                      Standardized Locations ({ocrTestResults.standardized.locations.length})
-                    </h4>
-                    <div className="max-h-64 overflow-y-auto space-y-2">
-                      {ocrTestResults.standardized.locations.map((location, index) => (
-                        <div key={index} className="p-3 border border-gray-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-medium text-gray-900">
-                              {location.id}: {location.name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {(location.confidence * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600 grid grid-cols-2 gap-2">
-                            <div>Type: <span className="font-medium">{location.type}</span></div>
-                            <div>Source: <span className="font-medium">{location.source_file}</span></div>
-                            <div>Method: <span className="font-medium">{location.extraction_method}</span></div>
-                            <div>Geocoding: <span className="font-medium">{location.needs_geocoding ? 'Required' : 'Complete'}</span></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Raw Extractions */}
-                  <div className="mb-6">
-                    <h4 className="text-md font-medium text-gray-900 mb-3">
-                      Raw Extractions by File ({ocrTestResults.standardized.raw_extractions.length})
-                    </h4>
-                    <div className="space-y-4">
-                      {ocrTestResults.standardized.raw_extractions.map((extraction, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-medium text-gray-900">
-                              {extraction.file_id}: {extraction.filename}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Confidence: {(extraction.confidence * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 text-sm">
-                            <div>
-                              <span className="text-gray-600">Locations:</span>
-                              <span className="font-medium ml-1">{extraction.extracted_locations.length}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Addresses:</span>
-                              <span className="font-medium ml-1">{extraction.extracted_addresses.length}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Businesses:</span>
-                              <span className="font-medium ml-1">{extraction.extracted_businesses.length}</span>
-                            </div>
-                          </div>
-
-                          {extraction.cleaned_text && (
-                            <div className="mt-2">
-                              <div className="text-sm text-gray-700 mb-1">Cleaned Text Preview:</div>
-                              <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-16 overflow-y-auto font-mono">
-                                {extraction.cleaned_text.substring(0, 150)}
-                                {extraction.cleaned_text.length > 150 ? '...' : ''}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* JSON Export */}
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-md font-medium text-gray-900">Export Standardized Data</h4>
-                      <button
-                        onClick={() => {
-                          const dataStr = JSON.stringify(ocrTestResults.standardized, null, 2);
-                          const dataBlob = new Blob([dataStr], {type: 'application/json'});
-                          const url = URL.createObjectURL(dataBlob);
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.download = `ocr_standardized_${new Date().toISOString().split('T')[0]}.json`;
-                          link.click();
-                        }}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                      >
-                        Download JSON
-                      </button>
-                    </div>
-                    <div className="text-xs text-gray-600 bg-white p-2 rounded max-h-32 overflow-y-auto font-mono">
-                      {JSON.stringify(ocrTestResults.standardized, null, 2).substring(0, 500)}...
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Ground Truth Comparison */}
-            {ocrTestResults.groundTruthComparison && (
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Ground Truth Comparison
-                  </h3>
-                  
-                  {/* Accuracy Metrics */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-green-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {(ocrTestResults.groundTruthComparison.accuracy_metrics.precision * 100).toFixed(1)}%
-                      </div>
-                      <div className="text-sm text-green-800">Precision</div>
-                    </div>
-                    <div className="bg-blue-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {(ocrTestResults.groundTruthComparison.accuracy_metrics.recall * 100).toFixed(1)}%
-                      </div>
-                      <div className="text-sm text-blue-800">Recall</div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {(ocrTestResults.groundTruthComparison.accuracy_metrics.f1_score * 100).toFixed(1)}%
-                      </div>
-                      <div className="text-sm text-purple-800">F1 Score</div>
-                    </div>
-                  </div>
-
-                  {/* Match Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-bold text-gray-900">
-                        {ocrTestResults.groundTruthComparison.ground_truth_total}
-                      </div>
-                      <div className="text-sm text-gray-600">Ground Truth</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-lg font-bold text-gray-900">
-                        {ocrTestResults.groundTruthComparison.ocr_total}
-                      </div>
-                      <div className="text-sm text-gray-600">OCR Found</div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-lg font-bold text-green-600">
-                        {ocrTestResults.groundTruthComparison.matches.length}
-                      </div>
-                      <div className="text-sm text-green-800">Matches</div>
-                    </div>
-                    <div className="text-center p-3 bg-red-50 rounded-lg">
-                      <div className="text-lg font-bold text-red-600">
-                        {ocrTestResults.groundTruthComparison.missing.length}
-                      </div>
-                      <div className="text-sm text-red-800">Missing</div>
-                    </div>
-                  </div>
-
-                  {/* Successful Matches */}
-                  {ocrTestResults.groundTruthComparison.matches.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-3 text-green-700">
-                        Successful Matches ({ocrTestResults.groundTruthComparison.matches.length})
-                      </h4>
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {ocrTestResults.groundTruthComparison.matches.map((match, index) => (
-                          <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="font-medium text-green-900">
-                                {match.ground_truth.business_name}
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  match.match_type === 'exact' ? 'bg-green-100 text-green-800' :
-                                  match.match_type === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {match.match_type}
-                                </span>
-                                <span className="text-sm text-gray-600">
-                                  {((match.confidence || 0) * 100).toFixed(1)}%
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              <div>Ground Truth: {match.ground_truth.address}</div>
-                              <div>OCR Result: {match.ocr_result.name}</div>
-                              <div>Source: {match.ground_truth.image_file}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Missing Locations */}
-                  {ocrTestResults.groundTruthComparison.missing.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-3 text-red-700">
-                        Missing Locations ({ocrTestResults.groundTruthComparison.missing.length})
-                      </h4>
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {ocrTestResults.groundTruthComparison.missing.map((missing, index) => (
-                          <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <div className="font-medium text-red-900">{missing.business_name}</div>
-                            <div className="text-sm text-red-700">
-                              {missing.address} | {missing.image_file}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* False Positives */}
-                  {ocrTestResults.groundTruthComparison.false_positives.length > 0 && (
-                    <div className="mb-6">
-                      <h4 className="text-md font-medium text-gray-900 mb-3 text-yellow-700">
-                        False Positives ({ocrTestResults.groundTruthComparison.false_positives.length})
-                      </h4>
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {ocrTestResults.groundTruthComparison.false_positives.map((fp, index) => (
-                          <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <div className="font-medium text-yellow-900">{fp.name}</div>
-                            <div className="text-sm text-yellow-700">
-                              Type: {fp.type} | Source: {fp.source} | Confidence: {((fp.confidence || 0) * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+        {/* Results Panel */}
+        {showResultsPanel && ocrTestResults && (
+          <div className="mt-8">
+            <ResultsPanel
+              results={ocrTestResults}
+              groundTruthComparison={ocrTestResults.groundTruthComparison}
+              isVisible={showResultsPanel}
+            />
           </div>
         )}
 
